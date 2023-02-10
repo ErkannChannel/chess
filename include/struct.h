@@ -6,7 +6,7 @@ enum PieceType {
     CAVALIER,
     FOU,
     TOUR,
-    REINE,
+    DAME,
     ROI,
     PAS_DE_PIECE
 };
@@ -14,8 +14,8 @@ enum PieceType {
 struct Piece {
     enum PieceType type; // type de la pièce
     int couleur; // couleur de la pièce (0 pour blanc ou 1 pour noir)
-    int x, y; // position actuelle de la pièce sur le plateau
     char name; // temporaire, pour l'affichage.
+    int test_roquable; //  1 quand la piéce peut roquer
 };
 
 
