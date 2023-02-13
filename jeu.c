@@ -1183,7 +1183,7 @@ void interception(int x,int y,int xRoi, int yRoi,struct Deplacement deplacements
 
     if (board[x][y].type != PAS_DE_PIECE)
     {
-       
+        //printf("test: %d %d %d \n", couleur, x,y);
         if (couleur == NOIR)
         {
             i = x-1;
@@ -1225,13 +1225,13 @@ void interception(int x,int y,int xRoi, int yRoi,struct Deplacement deplacements
     }
     else
     {
-        if (couleur == NOIR)
+        if (couleur != NOIR)
         {
-            if ( x+1<8  &&  board[x+1][y].type == PION && board[x+1][y].couleur == NOIR)
+            if ( x+1<8  &&  board[x+1][y].type == PION && board[x+1][y].couleur != NOIR)
             {
                 __interception(x+1, y,x, y, xRoi, yRoi,deplacements, nombreDeplacements, board );
             }
-            if ( x+2  == 1 &&  board[x+2][y].type == PION && board[x+2][y].couleur == NOIR)
+            if ( x+2  == 6 &&  board[x+2][y].type == PION && board[x+2][y].couleur != NOIR)
             {
                 __interception(x+2, y,x, y, xRoi, yRoi,deplacements, nombreDeplacements, board );
             }
@@ -1239,11 +1239,11 @@ void interception(int x,int y,int xRoi, int yRoi,struct Deplacement deplacements
         }
         else
         {
-            if ( x-1>= 0 &&  board[x-1][y].type == PION  && board[x-1][y].couleur == BLANC)
+            if ( x-1>= 0 &&  board[x-1][y].type == PION  && board[x-1][y].couleur != BLANC)
             {
                 __interception(x-1, y,x, y, xRoi, yRoi,deplacements, nombreDeplacements, board );
             }
-            if ( x-2  == 6 &&  board[x-2][y].type == PION && board[x-2][y].couleur == BLANC)
+            if ( x-2  == 1 &&  board[x-2][y].type == PION && board[x-2][y].couleur != BLANC)
             {
                 __interception(x-2, y,x, y, xRoi, yRoi,deplacements, nombreDeplacements, board );
             }
@@ -1873,34 +1873,60 @@ int transcription(int x){
     while(x-64>0){
         res++;
         x = x - 64;
+
     }
     return res;
 }
 
-void play()
+void play(SDL_Window *window, SDL_Renderer *renderer)
 {
     struct Piece board[8][8];
-    initialiserPlateau(board, "2kbR3/ppp3p1/5pb1/8/1PPb3r/3P4/P4PPP/6K1  ");
-    affichePlateau(board);
+    initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     int nbDeplacements = 0;
     struct Deplacement deplacements[100];
     int couleur = BLANC;
     deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-
-    SDL_Window* window = SDL_CreateWindow("Chess SUV", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 512, 512, SDL_WINDOW_SHOWN);
-    if (window == NULL)
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL)
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+    SDL_Surface* black_pion_surface = IMG_Load("pieces/black/black_pion.png");
+    if (black_pion_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* black_rook_surface = IMG_Load("pieces/black/black_rook.png");
+    if (black_rook_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* black_cavalier_surface = IMG_Load("pieces/black/black_cavalier.png");
+    if (black_cavalier_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* black_fou_surface = IMG_Load("pieces/black/black_fou.png");
+    if (black_fou_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* black_queen_surface = IMG_Load("pieces/black/black_queen.png");
+    if (black_queen_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* black_king_surface = IMG_Load("pieces/black/black_king.png");
+    if (black_king_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* white_pion_surface = IMG_Load("pieces/white/white_pion.png");
+    if (white_pion_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* white_rook_surface = IMG_Load("pieces/white/white_rook.png");
+    if (white_rook_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* white_fou_surface = IMG_Load("pieces/white/white_fou.png");
+    if (white_fou_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* white_cavalier_surface = IMG_Load("pieces/white/white_cavalier.png");
+    if (white_cavalier_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* white_queen_surface = IMG_Load("pieces/white/white_queen.png");
+    if (white_queen_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
+    SDL_Surface* white_king_surface = IMG_Load("pieces/white/white_king.png");
+    if (white_king_surface == NULL)
+        printf("Error loading image: %s\n", SDL_GetError());
     
-    bool quit = false;
     SDL_Event e;
-    draw_board(renderer, board);
+    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+    display_menu(renderer);
     SDL_RenderPresent(renderer);
     struct Deplacement move;
     move.xDepart = -1;
@@ -1908,45 +1934,59 @@ void play()
     move.yDepart = -1;
     move.yArrivee = -1;
     int x, y;
-    while (true)
+    while (true){
+        if(nbDeplacements == 0){
+            nbDeplacements = 1;
+            draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+			display_end_screen(renderer);
+            SDL_RenderPresent(renderer);
+        }
         if (SDL_PollEvent(&e) != 0)
             if (e.type == SDL_QUIT)
                 return NULL;
             else if (e.type == SDL_MOUSEBUTTONUP){
                 SDL_GetMouseState(&x, &y);
-                draw_board(renderer, board);
-                SDL_RenderPresent(renderer);
                 int piece_to_movex = transcription(x);
                 int piece_to_movey = transcription(y);
-                if(move.xDepart == -1){
+                if(move.xDepart == -1 && board[piece_to_movey][piece_to_movex].type != PAS_DE_PIECE && board[piece_to_movey][piece_to_movex].couleur == couleur){
                     move.xDepart = piece_to_movey;
                     move.yDepart = piece_to_movex;
-                    //display_piece_to_play(board[x][y].type, renderer, piece_to_movex, piece_to_movey);
-                    }
+                    display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                    SDL_RenderPresent(renderer);
+                }
                 else{
                     move.xArrivee = piece_to_movey;
                     move.yArrivee = piece_to_movex;
-                    if(!estPresent(move, deplacements, nbDeplacements)){
+                    if(board[piece_to_movey][piece_to_movex].couleur == couleur){
+                        move.xDepart = piece_to_movey;
+                        move.yDepart = piece_to_movex;
+                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                        display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                        SDL_RenderPresent(renderer);
+                    }
+                    else if(!estPresent(move, deplacements, nbDeplacements)){
+                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                        SDL_RenderPresent(renderer);
                         move.xDepart = -1;
                         move.yDepart = -1;
-                        continue;
                     }
-                    movePiece(move, board, couleur);
-                    affichePlateau(board);
-                    draw_board(renderer, board);
-                    SDL_RenderPresent(renderer);
-                    move.xDepart = -1;
-                    move.yDepart = -1;
-                    if (couleur == BLANC)
-                        couleur = NOIR;
-                    else
-                        couleur = BLANC;
-                    nbDeplacements = 0;
-                    deplacementsPossibles(couleur, deplacements, nbDeplacements, board);
+                    else{
+                        movePiece(move, board, couleur);
+                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                        display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                        SDL_RenderPresent(renderer);
+                        move.xDepart = -1;
+                        move.yDepart = -1;
+                        if (couleur == BLANC)
+                            couleur = NOIR;
+                        else
+                            couleur = BLANC;
+                        nbDeplacements = 0;
+                        deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
+                    }
                 }
             }
-                    
-    afficheDeplacements(deplacements, nbDeplacements, board);
+    }
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -1957,51 +1997,34 @@ void play()
 
 
 int main() {
-    /*
-    struct Piece board[8][8];
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 
-    //initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    SDL_Window* window = SDL_CreateWindow("Chess SUV", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 700, 512, SDL_WINDOW_SHOWN);
+    if (window == NULL)
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 
-
-    initialiserPlateau(board, "3qk3/1r6/8/n7/1N6/1K6/3n4/8 w - - 0 1");
-
-    //char fen[50] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-    //char fen[50] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-    //char *ptr = fen;
-   
-    affichePlateau(board);
-    // for (int i = 0; i < 2000000000; i++)
-    // {
-        //int nombreDeplacements = 0;
-        //struct Deplacement deplacements[100];
-        //ajouterDeplacementPion(1, 0, deplacements, &nombreDeplacements,board);
-        //ajouterDeplacementPion(1, 1, deplacements, &nombreDeplacements,board);
-        //ajouterDeplacementPion(1, 2, deplacements, &nombreDeplacements,board);
-        //ajouterDeplacementsPossibles(1, deplacements, &nombreDeplacements, board);
-    //}
-    int val = trouverRoi(1,board);
-    printf("cordonnée roi %d %d\n",val/10 ,val%10);
-    printf("%d\n", RoiEnEchec_bot(val/10,val%10,board));
-    printf("%d\n", RoiEnEchec_player(val/10,val%10,BLANC,board));
-    printf("%d\n", RoiEnEchec_player(0,0,BLANC,board));
-    printf("%d\n", RoiEnEchec_player(0,4,BLANC,board));
-    printf("%d\n", RoiEnEchec_player(0,6,BLANC,board));
-    printf("%d\n", RoiEnEchec_player(2,0,BLANC,board));
-    for (int i = 0; i < 200000000; i++)
-    {
-        RoiEnEchec_bot(val/10,val%10,board);
-    }
-    // int nombreDeplacements = 0;
-    // struct Deplacement deplacements[100];
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL)
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
     
-    // ajouterDeplacementsPossibles(1, deplacements, &nombreDeplacements, board);
-
-
-    // afficheDeplacements(deplacements,nombreDeplacements,board);
-    
-    */
-    
-    //test_déplacement();
-    play();
+    display_first_screen(renderer);
+    SDL_RenderPresent(renderer);
+    int x, y;
+    SDL_Event e;
+    while (true)
+        if (SDL_PollEvent(&e) != 0)
+            if (e.type == SDL_QUIT)
+                return NULL;
+            else if (e.type == SDL_MOUSEBUTTONUP){
+                SDL_GetMouseState(&x, &y);
+                if(x<550 && x>150 && y<487 && y>400){
+                    play(window, renderer);
+                    break;
+                }
+            }
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
     return 0;
 }

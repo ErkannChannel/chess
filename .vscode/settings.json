@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "random": "c"
+        "random": "c",
+        "struct.h": "c",
+        "sdl_image.h": "c"
     }
 }
