@@ -1,15 +1,19 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g -lSDL2 -lSDL2_image
+CFLAGS = -Wall -Wextra -g
 
-SRC = jeu.c
-OBJ = ${SRC:.c=.o}
+SRC1 = damien.c
+SRC2 = lucas.c
+SRC3 = Bot/try.py
 
 jeu: ${OBJ}
 
 .PHONY: clean
 
-video:
-	${CC} -o game ${SRC} -lSDL2 -lSDL2_image -lSDL2_ttf
+timothee:
+	${CC} -o timothee ${SRC1}
+
+lucas:
+	${CC} -o lucas ${SRC2} -lSDL2 -lSDL2_image -lSDL2_ttf
 
 clean:
-	${RM} jeu jeu.o
+	${RM} jeu jeu.o lucas damien timothee

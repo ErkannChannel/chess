@@ -12,8 +12,10 @@ void display_first_screen(SDL_Renderer* renderer){
   SDL_Rect dst = {0, 0, 700, 512};
   SDL_RenderFillRect(renderer, &dst);
   SDL_SetRenderDrawColor(renderer, 0x80, 0xa4, 0x64, 0xFF);
-  SDL_Rect tfp = {150, 400, 400, 87};
-  SDL_RenderFillRect(renderer, &tfp);
+  SDL_Rect tfp1 = {150, 300, 400, 87};
+  SDL_RenderFillRect(renderer, &tfp1);
+  SDL_Rect tfp2 = {150, 400, 400, 87};
+  SDL_RenderFillRect(renderer, &tfp2);
   /*
   // Initialize TTF library
   if (TTF_Init() == -1)
@@ -46,6 +48,49 @@ void display_first_screen(SDL_Renderer* renderer){
   */
 }
 
+/*
+void display_dead_piece(SDL_Renderer* renderer, int* dead_piece, int color, SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
+  for(int i = 0; i<sizeof(dead_piece); i++)
+    for(int x = 0; x<dead_piece[i]; x++){
+      SDL_Rect dst = { 520, 20, 50, 50};
+      SDL_Surface* piece = NULL;
+      if(color == 0)
+          if(i == PION)
+            piece = black_pion_surface;
+          else if(i == CAVALIER)
+            piece = black_cavalier_surface;
+          else if(i == FOU)
+            piece = black_fou_surface;
+          else if(i == TOUR)
+            piece = black_rook_surface;
+          else if(i == DAME)
+            piece = piece = black_queen_surface;
+          else if(i == ROI)
+            black_king_surface;
+          else
+            continue;
+      else
+        if(i == PION)
+          piece = white_pion_surface;
+        else if(i == CAVALIER)
+          piece = white_cavalier_surface;
+        else if(i == FOU)
+          piece = white_fou_surface;
+        else if(i == TOUR)
+          piece = white_rook_surface;
+        else if(i == DAME)
+          piece = white_queen_surface;
+        else if(i == ROI)
+          piece = white_king_surface;
+        else
+          continue;
+      SDL_Texture* piece_texture = SDL_CreateTextureFromSurface(renderer, piece);
+      SDL_RenderCopy(renderer, piece_texture, NULL, &dst);
+      SDL_DestroyTexture(piece_texture);
+    }
+}
+*/
+
 void display_end_screen(SDL_Renderer* renderer){
   SDL_SetRenderDrawColor(renderer, 0x3d, 0x3a, 0x38, 0xFF);
   SDL_Rect dst = {200, 24, 300, 463};
@@ -60,11 +105,24 @@ void display_menu(SDL_Renderer* renderer){
 }
 
 
+void display_piece(SDL_Renderer* renderer, SDL_Surface* piece, int x, int y){
+  int posX = x * TILE_SIZE;
+  int posY = y * TILE_SIZE;
+
+  SDL_Texture* piece_texture = SDL_CreateTextureFromSurface(renderer, piece);
+
+  SDL_Rect dst = { posX, posY, TILE_SIZE, TILE_SIZE };
+
+  SDL_RenderCopy(renderer, piece_texture, NULL, &dst);
+  SDL_DestroyTexture(piece_texture);
+}
+
+
+
 void display_piece_to_play(enum PieceType piece, int couleur,SDL_Renderer* renderer, int x, int y, SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
   SDL_SetRenderDrawColor(renderer, 0xEE, 0xEE, 0x00, 0xFF);
   SDL_Rect dst = { x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE };
   SDL_RenderFillRect(renderer, &dst);
-  printf("%d\n", piece);
   if(couleur == 0)
     if(piece == PION)
       display_piece(renderer, black_pion_surface, x, y);
@@ -80,7 +138,7 @@ void display_piece_to_play(enum PieceType piece, int couleur,SDL_Renderer* rende
       display_piece(renderer, black_king_surface, x, y);
     else
       printf("");
-  else if(couleur == 1)
+  else
     if(piece == PION)
       display_piece(renderer, white_pion_surface, x, y);
     else if(piece == CAVALIER)
@@ -95,23 +153,10 @@ void display_piece_to_play(enum PieceType piece, int couleur,SDL_Renderer* rende
       display_piece(renderer, white_king_surface, x, y);
     else
       printf("");
-  else
-    printf("");
 }
 
 
-void display_piece(SDL_Renderer* renderer, SDL_Surface* piece, int x, int y)
-    {
-      int posX = x * TILE_SIZE;
-      int posY = y * TILE_SIZE;
 
-      SDL_Texture* piece_texture = SDL_CreateTextureFromSurface(renderer, piece);
-
-      SDL_Rect dst = { posX, posY, TILE_SIZE, TILE_SIZE };
-
-      SDL_RenderCopy(renderer, piece_texture, NULL, &dst);
-      SDL_DestroyTexture(piece_texture);
-    }
 
 void display_ttf(SDL_Renderer* renderer, int x, int y){
   if(y == 0 || x == 0){
@@ -164,7 +209,7 @@ void display_ttf(SDL_Renderer* renderer, int x, int y){
 
 void draw_board(SDL_Renderer* renderer, struct Piece board[8][8], SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
   for (int x = 0; x < BOARD_SIZE; x++)
-    for (int y = 0; y < BOARD_SIZE; y++) {
+    for (int y = 0; y < BOARD_SIZE; y++){
       if ((x + y) % 2 == 0)
         SDL_SetRenderDrawColor(renderer, 0xEE, 0xEE, 0xD2, 0xFF);
       else
@@ -186,8 +231,8 @@ void draw_board(SDL_Renderer* renderer, struct Piece board[8][8], SDL_Surface* w
         else if(board[x][y].type == ROI)
           display_piece(renderer, black_king_surface, y, x);
         else
-          printf("");
-      else if(board[x][y].couleur == 1)
+          continue;
+      else
         if(board[x][y].type == PION)
           display_piece(renderer, white_pion_surface, y, x);
         else if(board[x][y].type == CAVALIER)
@@ -201,9 +246,6 @@ void draw_board(SDL_Renderer* renderer, struct Piece board[8][8], SDL_Surface* w
         else if(board[x][y].type == ROI)
           display_piece(renderer, white_king_surface, y, x);
         else
-          printf("");
-      else
-        printf("");
-	
+          continue;
 	}
 }

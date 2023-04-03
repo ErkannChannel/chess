@@ -1,58 +1,12 @@
 #include <stdio.h>
-#include "src/gui.c"
-
-
-const int BLANC = 1;
-const int NOIR = 0;
-const int VIDE = -1;
-
-#define couleur(param) printf("\033[%sm",param)
-
-
-void affichePlateau(struct Piece plateau[8][8]) {
-    // Affiche les lettres de colonne en haut de l'échiquier
-    printf("   A B C D E F G H\n");
-    // Boucle pour parcourir toutes les lignes de l'échiquier
-    for(int i = 0; i < 8; i++) {
-        // Affiche le numéro de la ligne avant de parcourir les colonnes
-        printf(" %d ", 8-i);
-        // Boucle pour parcourir toutes les colonnes de l'échiquier
-        for(int j = 0; j < 8; j++) {
-            // Si la case actuelle contient une pièce
-            if(plateau[i][j].name != ' ') {
-                // Si la pièce est blanche, affiche son nom en majuscule
-                if (plateau[i][j].couleur == 0) {
-                    couleur("36");
-                    printf("%c ", tolower(plateau[i][j].name));
-                    couleur("0");
-                } else {
-                    // Sinon, affiche son nom en minuscule pour indiquer qu'il s'agit d'une pièce noire
-                    couleur("31");
-                    printf("%c ", plateau[i][j].name);
-                    couleur("0");
-                }
-            } else {
-                // Si la case actuelle est vide, affiche un point
-                printf(". ");
-            }
-        }
-        // Affiche le numéro de la ligne après avoir parcouru les colonnes
-        printf(" %d\n", 8-i);
-    }
-    // Affiche les lettres de colonne en bas de l'échiquier
-    printf("   A B C D E F G H\n");
-}
+#include "include/struct.h"
+#include "src/print_board.c"
 
 
 int RoiEnEchec_player(int xRoi,int yRoi, int couleur,struct Piece board[8][8])
 {
-
-
-
  int j;
  int i;
-
-
     if (couleur == BLANC)
     {
         i = xRoi-1;
@@ -1539,7 +1493,8 @@ void ajouterDeplacementsPossibles( int couleur, struct Deplacement deplacements[
     int coord = trouverRoi(couleur,board);
     int xRoi = coord/10;
     int yRoi = coord%10;
-    printf("coordonnés roi %d %d \n",xRoi,yRoi);
+    printf("Les coordonnés du Roi sont | x = %d, y = %d |\n",xRoi,yRoi);
+    printf("\n");
 
     /*
 
@@ -1609,6 +1564,7 @@ void ajouterDeplacementsPossibles( int couleur, struct Deplacement deplacements[
 
 
 void afficheDeplacements(struct Deplacement* deplacements, int nbDeplacements,struct Piece board[8][8]) {
+    printf("Voici la liste des déplacements possibles : \n");
     for (int i = 0; i < nbDeplacements; i++) {
         if (deplacements[i].xDepart == -2)
         {
@@ -1619,8 +1575,12 @@ void afficheDeplacements(struct Deplacement* deplacements, int nbDeplacements,st
             printf("Deplacement grand Roque\n");
         }
         else
-            printf("Deplacement %d: %c %c%d -> %c%d\n",i+1,board[deplacements[i].xDepart][deplacements[i].yDepart].name, 'a' + deplacements[i].yDepart, 8 - deplacements[i].xDepart, 'a' + deplacements[i].yArrivee, 8 - deplacements[i].xArrivee);
+            if(i<9)
+                printf("Deplacement %d : %c %c%d -> %c%d\n",i+1,board[deplacements[i].xDepart][deplacements[i].yDepart].name, 'a' + deplacements[i].yDepart, 8 - deplacements[i].xDepart, 'a' + deplacements[i].yArrivee, 8 - deplacements[i].xArrivee);
+            else
+                printf("Deplacement %d: %c %c%d -> %c%d\n",i+1,board[deplacements[i].xDepart][deplacements[i].yDepart].name, 'a' + deplacements[i].yDepart, 8 - deplacements[i].xDepart, 'a' + deplacements[i].yArrivee, 8 - deplacements[i].xArrivee);
     }
+    printf("\n");
 }
 
 
@@ -1666,7 +1626,6 @@ void initialiserPlateau(struct Piece plateau[8][8], char* fen) {
 
         k++;
     }
-    /*
     int couleur;
     k++;
     if (fen[k] == 'w')
@@ -1675,18 +1634,38 @@ void initialiserPlateau(struct Piece plateau[8][8], char* fen) {
         couleur = NOIR;
     
     k++;
-    while(fen[k] != '-' && ' ')
+    int Roi = trouverRoi(couleur,plateau);
+    int xRoiBlanc = Roi/10;
+    int yRoiBlanc = Roi%10;
+
+    Roi = trouverRoi(couleur,plateau);
+    int xRoiNoir = Roi/10;
+    int yRoiNoir = Roi%10;
+
+    while(fen[k] != '-' && fen[k] != ' ')
     {
         if(fen[k] == 'K')
         {
-            
+            plateau[xRoiBlanc][yRoiBlanc].test_roquable = 1;
+            plateau[xRoiBlanc][yRoiBlanc+3].test_roquable = 1;
         }
-        if(fen[k] == 'Q')
-        if(fen[k] == 'k')
-        if(fen[k] == 'q')
+        else if(fen[k] == 'Q')
+        {
+            plateau[xRoiBlanc][yRoiBlanc].test_roquable = 1;
+            plateau[xRoiBlanc][yRoiBlanc-4].test_roquable = 1;
+        }
+        else if(fen[k] == 'k')
+        {
+            plateau[xRoiNoir][yRoiNoir].test_roquable = 1;
+            plateau[xRoiNoir][yRoiNoir-3].test_roquable = 1;
+        }
+        else if(fen[k] == 'q')
+        {
+            plateau[xRoiNoir][yRoiNoir].test_roquable = 1;
+            plateau[xRoiNoir][yRoiNoir-4].test_roquable = 1;
+        }
+        k++;
     }
-
-    */
 
 }
 
@@ -1701,20 +1680,18 @@ void deplacementsPossibles(int couleur,struct Deplacement* deplacements, int* nb
     if (menace == -1)
     {
         // le rois n'est pas en échecs
-        printf("le roi n'est pas en echecs\n");
         ajouterDeplacementsPossibles(couleur, deplacements, nbDeplacements, board);
     }
     else
     {
-        printf("njvdzvnjodenvode\n");
         if (menace != -2)
         {
-            printf("il y a une menace\n");
+            printf("Le roi est menacé\n");
             interception_global(menace/10,menace%10,xRoi,yRoi,deplacements, nbDeplacements,board,couleur );
         }
         else
         {
-            printf("il y a plusieur menace\n");
+            printf("Le roi est menacé par plusieurs menaces\n");
         }
         ajouterDeplacementRoi(xRoi,yRoi,deplacements,nbDeplacements,board);
     }
@@ -1737,7 +1714,6 @@ struct Deplacement conversionString(char* str) {
     resultat.yDepart = str[0] - 'a';
     resultat.xArrivee = 7 -( str[3] - '1');
     resultat.yArrivee = str[2] - 'a';
-    printf("\n%i  %i move apres trans %i  %i\n", resultat.xDepart, resultat.yDepart, resultat.xArrivee, resultat.yArrivee );
     return resultat;
 }
 
@@ -1867,164 +1843,47 @@ void test_interception()
     afficheDeplacements(deplacements,nombreDeplacements,board);
 }
 
-int transcription(int x){
-    int comp = x;
-    int res = 0;
-    while(x-64>0){
-        res++;
-        x = x - 64;
-
-    }
-    return res;
-}
-
-void play(SDL_Window *window, SDL_Renderer *renderer)
-{
-    struct Piece board[8][8];
-    initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    int nbDeplacements = 0;
-    struct Deplacement deplacements[100];
-    int couleur = BLANC;
-    deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
-
-    SDL_Surface* black_pion_surface = IMG_Load("pieces/black/black_pion.png");
-    if (black_pion_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* black_rook_surface = IMG_Load("pieces/black/black_rook.png");
-    if (black_rook_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* black_cavalier_surface = IMG_Load("pieces/black/black_cavalier.png");
-    if (black_cavalier_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* black_fou_surface = IMG_Load("pieces/black/black_fou.png");
-    if (black_fou_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* black_queen_surface = IMG_Load("pieces/black/black_queen.png");
-    if (black_queen_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* black_king_surface = IMG_Load("pieces/black/black_king.png");
-    if (black_king_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* white_pion_surface = IMG_Load("pieces/white/white_pion.png");
-    if (white_pion_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* white_rook_surface = IMG_Load("pieces/white/white_rook.png");
-    if (white_rook_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* white_fou_surface = IMG_Load("pieces/white/white_fou.png");
-    if (white_fou_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* white_cavalier_surface = IMG_Load("pieces/white/white_cavalier.png");
-    if (white_cavalier_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* white_queen_surface = IMG_Load("pieces/white/white_queen.png");
-    if (white_queen_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    SDL_Surface* white_king_surface = IMG_Load("pieces/white/white_king.png");
-    if (white_king_surface == NULL)
-        printf("Error loading image: %s\n", SDL_GetError());
-    
-    SDL_Event e;
-    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-    display_menu(renderer);
-    SDL_RenderPresent(renderer);
-    struct Deplacement move;
-    move.xDepart = -1;
-    move.xArrivee = -1;
-    move.yDepart = -1;
-    move.yArrivee = -1;
-    int x, y;
-    while (true){
-        if(nbDeplacements == 0){
-            nbDeplacements = 1;
-            draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-			display_end_screen(renderer);
-            SDL_RenderPresent(renderer);
-        }
-        if (SDL_PollEvent(&e) != 0)
-            if (e.type == SDL_QUIT)
-                return NULL;
-            else if (e.type == SDL_MOUSEBUTTONUP){
-                SDL_GetMouseState(&x, &y);
-                int piece_to_movex = transcription(x);
-                int piece_to_movey = transcription(y);
-                if(move.xDepart == -1 && board[piece_to_movey][piece_to_movex].type != PAS_DE_PIECE && board[piece_to_movey][piece_to_movex].couleur == couleur){
-                    move.xDepart = piece_to_movey;
-                    move.yDepart = piece_to_movex;
-                    display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                    SDL_RenderPresent(renderer);
-                }
-                else{
-                    move.xArrivee = piece_to_movey;
-                    move.yArrivee = piece_to_movex;
-                    if(board[piece_to_movey][piece_to_movex].couleur == couleur){
-                        move.xDepart = piece_to_movey;
-                        move.yDepart = piece_to_movex;
-                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        SDL_RenderPresent(renderer);
-                    }
-                    else if(!estPresent(move, deplacements, nbDeplacements)){
-                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        SDL_RenderPresent(renderer);
-                        move.xDepart = -1;
-                        move.yDepart = -1;
-                    }
-                    else{
-                        movePiece(move, board, couleur);
-                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        SDL_RenderPresent(renderer);
-                        move.xDepart = -1;
-                        move.yDepart = -1;
-                        if (couleur == BLANC)
-                            couleur = NOIR;
-                        else
-                            couleur = BLANC;
-                        nbDeplacements = 0;
-                        deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
-                    }
-                }
-            }
-    }
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-}
-
-
 
 
 
 int main() {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-
-    SDL_Window* window = SDL_CreateWindow("Chess SUV", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 700, 512, SDL_WINDOW_SHOWN);
-    if (window == NULL)
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL)
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-    
-    display_first_screen(renderer);
-    SDL_RenderPresent(renderer);
-    int x, y;
-    SDL_Event e;
-    while (true)
-        if (SDL_PollEvent(&e) != 0)
-            if (e.type == SDL_QUIT)
-                return NULL;
-            else if (e.type == SDL_MOUSEBUTTONUP){
-                SDL_GetMouseState(&x, &y);
-                if(x<550 && x>150 && y<487 && y>400){
-                    play(window, renderer);
-                    break;
-                }
-            }
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    struct Piece board[8][8];
+    initialiserPlateau(board, "2kbR3/ppp3p1/5pb1/8/1PPb3r/3P4/P4PPP/6K1  ");
+    printf("\n");
+    affichePlateau(board);
+    printf("\n");
+    int nbDeplacements = 0;
+    struct Deplacement deplacements[100];
+    char rep[5];
+    struct Deplacement move;
+    int couleur = BLANC;
+    deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
+    while (nbDeplacements)
+    {
+        printf("Veuillez entrer un déplacement : ");
+        fgets(rep, 5, stdin);
+        printf("\n");
+        move = conversionString(rep);
+        while(!estPresent(move, deplacements,nbDeplacements))
+        {
+            afficheDeplacements( deplacements, nbDeplacements, board);
+            printf("Veuillez entrer un déplacement valide : ");
+            fgets(rep, 5, stdin);
+            move = conversionString(rep);
+        }
+        movePiece(move,board,couleur);
+        affichePlateau(board);
+        printf("\n");
+        if (couleur == BLANC)
+        {
+            couleur = NOIR;
+        }
+        else
+        {
+            couleur = BLANC;
+        }
+        nbDeplacements = 0;
+        deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
+    }
     return 0;
 }

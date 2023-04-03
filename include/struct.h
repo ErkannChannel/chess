@@ -1,6 +1,11 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
+const int BLANC = 1;
+const int NOIR = 0;
+const int VIDE = -1;
+
+
 enum PieceType {
     PION,
     CAVALIER,
