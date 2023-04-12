@@ -1848,7 +1848,7 @@ void test_interception()
 
 int main() {
     struct Piece board[8][8];
-    initialiserPlateau(board, "2kbR3/ppp3p1/5pb1/8/1PPb3r/3P4/P4PPP/6K1  ");
+    initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     printf("\n");
     affichePlateau(board);
     printf("\n");
@@ -1875,13 +1875,9 @@ int main() {
         affichePlateau(board);
         printf("\n");
         if (couleur == BLANC)
-        {
             couleur = NOIR;
-        }
         else
-        {
             couleur = BLANC;
-        }
         nbDeplacements = 0;
         deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
     }

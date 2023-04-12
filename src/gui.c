@@ -8,44 +8,77 @@
 #define TILE_SIZE 64
 
 void display_first_screen(SDL_Renderer* renderer){
+
+
   SDL_SetRenderDrawColor(renderer, 0x3d, 0x3a, 0x38, 0xFF);
   SDL_Rect dst = {0, 0, 700, 512};
   SDL_RenderFillRect(renderer, &dst);
   SDL_SetRenderDrawColor(renderer, 0x80, 0xa4, 0x64, 0xFF);
-  SDL_Rect tfp1 = {150, 300, 400, 87};
+
+  SDL_Surface* logo_surface = IMG_Load("pieces/logo.png");
+      if (logo_surface == NULL)
+          printf("Error loading image: %s\n", SDL_GetError());
+  SDL_Texture* piece_texture = SDL_CreateTextureFromSurface(renderer, logo_surface);
+  SDL_Rect dst25 = { 222, -10, 250, 250 };
+  SDL_RenderCopy(renderer, piece_texture, NULL, &dst25);
+  SDL_DestroyTexture(piece_texture);
+
+  SDL_Rect tfp1 = {150, 400, 400, 87};
   SDL_RenderFillRect(renderer, &tfp1);
-  SDL_Rect tfp2 = {150, 400, 400, 87};
+  SDL_Rect tfp2 = {150, 300, 400, 87};
   SDL_RenderFillRect(renderer, &tfp2);
-  /*
+  SDL_Rect tfp3 = {150, 200, 400, 87};
+  SDL_RenderFillRect(renderer, &tfp3);
   // Initialize TTF library
   if (TTF_Init() == -1)
       printf("Error initializing TTF: %s\n", TTF_GetError());
 
   // Load font
-  TTF_Font *font = TTF_OpenFont("fonts/arial.ttf", 1000);
+  TTF_Font *font = TTF_OpenFont("fonts/arial.ttf", 10);
   if (!font)
       printf("Error loading font: %s\n", TTF_GetError());
-  // Render text to surface
-  char text[2];
-  SDL_Color color = {238, 238, 210};
-  sprintf(text, "PLAY");
 
-  SDL_Surface *surface = TTF_RenderText_Solid(font, text, color);
-  if (!surface)
+  // Render text to surface
+  char text1[] = "    IA VS IA    ";
+  char text2[] = "  Joueur VS IA  ";
+  char text3[] = "Joueur VS Joueur";
+  SDL_Color color;
+  color = (SDL_Color){238, 238, 210};
+
+  SDL_Surface *surface1 = TTF_RenderText_Solid(font, text1, color);
+  if (!surface1)
+      printf("Error rendering text: %s\n", TTF_GetError());
+  SDL_Surface *surface2 = TTF_RenderText_Solid(font, text2, color);
+  if (!surface2)
+      printf("Error rendering text: %s\n", TTF_GetError());
+  SDL_Surface *surface3 = TTF_RenderText_Solid(font, text3, color);
+  if (!surface3)
       printf("Error rendering text: %s\n", TTF_GetError());
 
   // Convert surface to texture
-  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
-  if (!texture)
+  SDL_Texture *texture1 = SDL_CreateTextureFromSurface(renderer, surface1);
+  if (!texture1)
       printf("Error creating texture from surface: %s\n", SDL_GetError());
+  SDL_Texture *texture2 = SDL_CreateTextureFromSurface(renderer, surface2);
+  if (!texture2)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
+  SDL_Texture *texture3 = SDL_CreateTextureFromSurface(renderer, surface3);
+  if (!texture3)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
+
   // Set destination rectangle for the text
-  SDL_Rect dest = {150, 400, 400, 87};
+  SDL_Rect dest1 = {245, 230 , 200, 30};
+  SDL_Rect dest2 = {245, 330 , 200, 30};
+  SDL_Rect dest3 = {245, 430 , 200, 30};
+
   // Render the text
-  SDL_RenderCopy(renderer, texture, NULL, &dest);
+  SDL_RenderCopy(renderer, texture1, NULL, &dest1);
+  SDL_RenderCopy(renderer, texture2, NULL, &dest2);
+  SDL_RenderCopy(renderer, texture3, NULL, &dest3);
+
   // Clean up
   TTF_CloseFont(font);
   TTF_Quit();
-  */
 }
 
 /*
