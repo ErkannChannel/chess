@@ -676,7 +676,7 @@ int piece_cloue(int x, int y, int xRoi, int yRoi, struct Piece board[8][8]){
 
             if ( (i >=0 && j >=0) && (board[i][j].type == DAME || board[i][j].type == FOU ) && board[i][j].couleur != board[x][y].couleur )
             {
-                return 4;
+                return 4; // ereur coriger
             }
         }
         else
@@ -1750,7 +1750,6 @@ void movePiece(struct Deplacement deplacement, struct Piece board[8][8], int cou
         {
             board[7][6] = board[7][4];
             board[7][5] = board[7][7];
-            printf("salut\n");
             mettre_la_case_a_vide(7,4,board);
             mettre_la_case_a_vide(7,7,board);
             board[7][6].test_roquable = 0;
@@ -2146,7 +2145,7 @@ struct Deplacement conversionString(char* str) {
 
 
 
-struct Deplacement ouverture_bot(int argc, struct Deplacement argv[], int* nb_deplacements, struct Piece board[8][8]) {
+struct Deplacement ouverture_bot(int argc, struct Deplacement argv[], int* nb_deplacements) {
     if (*nb_deplacements == 0)
     {
         return (struct Deplacement) {6,4,4,4};
@@ -2213,7 +2212,6 @@ int transcription(int x){
 void play(SDL_Window *window, SDL_Renderer *renderer, int mode)
 {
     struct Piece board[8][8];
-    initialiserPlateau(board, "rnbqkbnr/1ppp1ppp/8/p3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4");
     initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 
@@ -2279,21 +2277,6 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode)
             draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
 			display_end_screen(renderer);
             SDL_RenderPresent(renderer);
-            while (true)
-            if (SDL_PollEvent(&e) != 0)
-                if (e.type == SDL_QUIT)
-                    return 0;
-                else if (e.type == SDL_MOUSEBUTTONUP){
-                    SDL_GetMouseState(&x, &y);
-                    if(x>225 && x<475 && y<287 && y>200){
-                        play(window, renderer, mode);
-                        return;
-                    }
-                    else if(x>225 && x<475 && y<387 && y>300){
-                        fun_main(renderer, window);
-                        return;
-                    }
-                }
         }
         if(mode == 1){
             if (SDL_PollEvent(&e) != 0)
@@ -2366,7 +2349,7 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode)
         else if(mode == 2){
             if(couleur == NOIR){
                 if(is_open == 0){
-                    struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
+                    struct Deplacement dep = ouverture_bot(200, last_deplacements, &last);
                     if(dep.xArrivee == -5)
                         is_open = 1;
                     else{
@@ -2452,7 +2435,7 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode)
         }
         else{
             if(is_open == 0){
-                    struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
+                    struct Deplacement dep = ouverture_bot(200, last_deplacements, &last);
                     if(dep.xArrivee == -5)
                         is_open = 1;
                     else{
@@ -2503,7 +2486,18 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode)
 
 
 
-void fun_main(SDL_Renderer* renderer, SDL_Window* window){
+int main() {
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+
+    SDL_Window* window = SDL_CreateWindow("Chess SUV", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 700, 512, SDL_WINDOW_SHOWN);
+    if (window == NULL)
+        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL)
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+    
     display_first_screen(renderer);
     SDL_RenderPresent(renderer);
     int x, y;
@@ -2530,20 +2524,5 @@ void fun_main(SDL_Renderer* renderer, SDL_Window* window){
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-}
-
-int main() {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
-        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
-
-    SDL_Window* window = SDL_CreateWindow("Chess SUV", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 700, 512, SDL_WINDOW_SHOWN);
-    if (window == NULL)
-        printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
-
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL)
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-    fun_main(renderer, window);
-    
     return 0;
 }

@@ -8,8 +8,6 @@
 #define TILE_SIZE 64
 
 void display_first_screen(SDL_Renderer* renderer){
-
-
   SDL_SetRenderDrawColor(renderer, 0x3d, 0x3a, 0x38, 0xFF);
   SDL_Rect dst = {0, 0, 700, 512};
   SDL_RenderFillRect(renderer, &dst);
@@ -124,10 +122,130 @@ void display_dead_piece(SDL_Renderer* renderer, int* dead_piece, int color, SDL_
 }
 */
 
+
+void timer(SDL_Window* window,  SDL_Renderer* renderer){
+  SDL_Event event;
+  int running = 1;
+  SDL_Color textColor = {255, 255, 255, 0};
+
+  TTF_Font* font = TTF_OpenFont("fonts/arial.ttf", 24);
+    if(font == NULL) {
+        printf("Font could not be loaded! SDL_Error: %s\n", SDL_GetError());
+        return 1;
+    }
+
+  // Create a surface and texture for the text
+  SDL_Surface* textSurface = NULL;
+  SDL_Texture* textTexture = NULL;
+  char text[20] = "";
+
+  // Initialize timer variables
+  Uint32 startTime = 0;
+  Uint32 currentTime = 0;
+  Uint32 elapsedTime = 0;
+  int seconds = 0;
+
+  startTime = SDL_GetTicks();
+
+  while(running) {
+      while(SDL_PollEvent(&event))
+          if(event.type == SDL_QUIT)
+              running = 0;
+
+      // Calculate elapsed time
+      currentTime = SDL_GetTicks();
+      elapsedTime = currentTime - startTime;
+      seconds = elapsedTime / 1000;
+
+      // Render the text to the surface
+      sprintf(text, "Seconds: %d", seconds);
+      textSurface = TTF_RenderText_Solid(font, text, textColor);
+
+      // Create a texture from the surface
+      textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+
+      // Clear the renderer
+      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+      SDL_RenderClear(renderer);
+
+      // Render the texture to the screen
+      SDL_Rect textRect = {0, 0, textSurface->w, textSurface->h};
+      SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+
+      // Update the screen
+      SDL_RenderPresent(renderer);
+
+      // Free the surface and texture
+      SDL_FreeSurface(textSurface);
+      SDL_DestroyTexture(textTexture);
+  }
+
+  // Free the font
+  TTF_CloseFont(font);
+}
+
+
+
 void display_end_screen(SDL_Renderer* renderer){
   SDL_SetRenderDrawColor(renderer, 0x3d, 0x3a, 0x38, 0xFF);
   SDL_Rect dst = {200, 24, 300, 463};
   SDL_RenderFillRect(renderer, &dst);
+  SDL_SetRenderDrawColor(renderer, 0x80, 0xa4, 0x64, 0xFF);
+  SDL_Rect tfp1 = {225, 200, 250, 87};
+  SDL_RenderFillRect(renderer, &tfp1);
+  SDL_Rect tfp2 = {225, 300, 250, 87};
+  SDL_RenderFillRect(renderer, &tfp2);
+
+  // Initialize TTF library
+  if (TTF_Init() == -1)
+      printf("Error initializing TTF: %s\n", TTF_GetError());
+
+  // Load font
+  TTF_Font *font = TTF_OpenFont("fonts/arial.ttf", 10);
+  if (!font)
+      printf("Error loading font: %s\n", TTF_GetError());
+
+  // Render text to surface
+  char text1[] = "       End      ";
+  char text2[] = "      Retry     ";
+  char text3[] = "    Back Menu   ";
+  SDL_Color color;
+  color = (SDL_Color){238, 238, 210};
+
+  SDL_Surface *surface1 = TTF_RenderText_Solid(font, text1, color);
+  if (!surface1)
+      printf("Error rendering text: %s\n", TTF_GetError());
+  SDL_Surface *surface2 = TTF_RenderText_Solid(font, text2, color);
+  if (!surface2)
+      printf("Error rendering text: %s\n", TTF_GetError());
+  SDL_Surface *surface3 = TTF_RenderText_Solid(font, text3, color);
+  if (!surface3)
+      printf("Error rendering text: %s\n", TTF_GetError());
+
+  // Convert surface to texture
+  SDL_Texture *texture1 = SDL_CreateTextureFromSurface(renderer, surface1);
+  if (!texture1)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
+  SDL_Texture *texture2 = SDL_CreateTextureFromSurface(renderer, surface2);
+  if (!texture2)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
+  SDL_Texture *texture3 = SDL_CreateTextureFromSurface(renderer, surface3);
+  if (!texture3)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
+
+  // Set destination rectangle for the text
+  SDL_Rect dest1 = {245, 90 , 200, 30};
+  SDL_Rect dest2 = {245, 230 , 200, 30};
+  SDL_Rect dest3 = {245, 330 , 200, 30};
+
+  // Render the text
+  SDL_RenderCopy(renderer, texture1, NULL, &dest1);
+  SDL_RenderCopy(renderer, texture2, NULL, &dest2);
+  SDL_RenderCopy(renderer, texture3, NULL, &dest3);
+
+  // Clean up
+  TTF_CloseFont(font);
+  TTF_Quit();
 }
 
 
