@@ -1744,13 +1744,13 @@ void mettre_la_case_a_vide(int x,int y,struct Piece board[8][8])
 
 void movePiece(struct Deplacement deplacement, struct Piece board[8][8], int couleur)
 {
+
     if (deplacement.xDepart == -2)
     {
         if (couleur == BLANC)
         {
             board[7][6] = board[7][4];
             board[7][5] = board[7][7];
-            printf("salut\n");
             mettre_la_case_a_vide(7,4,board);
             mettre_la_case_a_vide(7,7,board);
             board[7][6].test_roquable = 0;
@@ -2073,7 +2073,7 @@ float minmax(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8
     }
     
     struct Deplacement deplacements[100];
-    int nombreDeplacements =0 ;
+    int nombreDeplacements = 0 ;
     deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
     //printf("le nombre de deplacement %i\n",nombreDeplacements);
     //afficheDeplacements( deplacements, nombreDeplacements, board);
@@ -2094,7 +2094,62 @@ float minmax(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8
     return score;
 }
 
+/*
+void dead_pieces(struct Piece result[100], struct Piece board[8][8], int color,int* i) {
+    if(is_piece_dead(result,board, CAVALIER, color)){       
+        result[*i].type = CAVALIER;
+        //printf("%i\n", result[*i].type == CAVALIER);
+        result[*i].couleur = color;
+        (*i)++;
+        printf("%i \n", *i);
+    }
+    if(is_piece_dead(result,board, FOU, color)){
+        result[*i].type = FOU;
+        result[*i].couleur = color;
+        (*i)++;
+    }
+    if(is_piece_dead(result,board, TOUR, color)){
+        result[*i].type = TOUR;
+        result[*i].couleur = color;
+        (*i)++;
+    }
+    if(is_piece_dead(result, board, DAME, color)){
+        result[*i].type = DAME;
+        result[*i].couleur = color;
+        (*i)++;
+    }
+}
 
+void afficher(struct Piece result[100]){
+    for (int x = 0; x < 10; x++)
+        printf("%i |", result[x].type);
+    printf("\n");
+}
+
+int nb_piece(struct Piece result[100], int piece_type, int piece_color){
+    int res = 0;
+    for (int x = 0; x < 100; x++)
+        if (result[x].type == piece_type && result[x].couleur == piece_color)
+            res++;
+    return res;
+
+}
+
+
+int is_piece_dead(struct Piece result[100],struct Piece board[8][8], int piece_type, int piece_color) {
+    int comp = 0;
+    //printf("%i\n", nb_piece(result, piece_type, piece_color));
+    for (int x = 0; x < BOARD_SIZE; x++)
+        for (int y = 0; y < BOARD_SIZE; y++)
+            if (board[x][y].couleur == piece_color && board[x][y].type == piece_type && piece_type == DAME)
+                return 0;
+            else if (board[x][y].couleur == piece_color && ((piece_type == CAVALIER && board[x][y].type == CAVALIER) ||(piece_type == FOU && board[x][y].type == FOU)|| (piece_type == TOUR && board[x][y].type == TOUR)))
+                comp++;
+    if(comp + nb_piece(result, piece_type, piece_color) == 2)
+        return 0;
+    return 1;
+}
+*/
 
 struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece board[8][8])
 {
@@ -2202,19 +2257,19 @@ struct Deplacement ouverture_bot(int argc, struct Deplacement argv[], int* nb_de
 int transcription(int x){
     int comp = x;
     int res = 0;
-    while(x-64>0){
+    while(x-TILE_SIZE>0){
         res++;
-        x = x - 64;
+        x = x - TILE_SIZE;
 
     }
     return res;
 }
 
-void play(SDL_Window *window, SDL_Renderer *renderer, int mode)
+
+void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_bot)
 {
     struct Piece board[8][8];
-    initialiserPlateau(board, "rnbqkbnr/1ppp1ppp/8/p3p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 0 4");
-    initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    initialiserPlateau(board, "r1bqkbnr/pppppppp/2n5/4N3/8/8/PPPPPPPP/RNBQKB1R b KQkq - 3 2");
     // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 
     int nbDeplacements = 0;
@@ -2224,7 +2279,6 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode)
     int last = 0;
     int is_open = 0;
     deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
-    // afficheDeplacements(deplacements, nbDeplacements, board);
 
     SDL_Surface* black_pion_surface = IMG_Load("pieces/black/black_pion.png");
     if (black_pion_surface == NULL)
@@ -2264,243 +2318,217 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode)
         printf("Error loading image: %s\n", SDL_GetError());
     
     SDL_Event e;
-    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
     display_menu(renderer);
+    display_whoplay(renderer, couleur);
+    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
     SDL_RenderPresent(renderer);
     struct Deplacement move;
+
+    //struct Piece list_dead_piece[100];
+    //int nb_dead_piece = 0;
+
     move.xDepart = -1;
     move.xArrivee = -1;
     move.yDepart = -1;
     move.yArrivee = -1;
     int x, y;
-    while (true){
-        if(nbDeplacements == 0){
-            nbDeplacements = 1;
-            draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-			display_end_screen(renderer);
-            SDL_RenderPresent(renderer);
-            while (true)
-            if (SDL_PollEvent(&e) != 0)
-                if (e.type == SDL_QUIT)
-                    return 0;
-                else if (e.type == SDL_MOUSEBUTTONUP){
-                    SDL_GetMouseState(&x, &y);
-                    if(x>225 && x<475 && y<287 && y>200){
-                        play(window, renderer, mode);
-                        return;
+    while (true)
+        if (SDL_PollEvent(&e) != 0 && e.type == SDL_QUIT)
+                return;
+        else if(nbDeplacements == 0){
+                nbDeplacements = 1;
+                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                display_end_screen(renderer);
+                SDL_RenderPresent(renderer);
+                while (true)
+                if (SDL_PollEvent(&e) != 0)
+                    if (e.type == SDL_QUIT)
+                        return 0;
+                    else if (e.type == SDL_MOUSEBUTTONUP){
+                        SDL_GetMouseState(&x, &y);
+                        if(x>1120 && x<1370 && y<487 && y>400){
+                            play(window, renderer, mode, difficulty_bot);
+                            return;
+                        }
+                        else if(x>1120 && x<1370 && y<587 && y>500){
+                            fun_main(renderer, window);
+                            return;
+                        }
                     }
-                    else if(x>225 && x<475 && y<387 && y>300){
-                        fun_main(renderer, window);
-                        return;
+            }
+        else if(mode == 2 && couleur == NOIR){
+            if(is_open == 0){
+                struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
+                if(dep.xArrivee == -5)
+                    is_open = 1;
+                else{
+                    movePiece(dep, board, couleur);
+                    last_deplacements[last] = dep;
+                    last++;
+                }
+                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                nbDeplacements = 0;
+                couleur = BLANC;
+                display_whoplay(renderer, couleur);
+                SDL_RenderPresent(renderer);
+                deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
+            }
+            if(is_open == 1){
+                main_minmax(difficulty_bot,NOIR,board);
+                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                couleur = BLANC;
+                nbDeplacements = 0;
+                display_whoplay(renderer, couleur);
+                SDL_RenderPresent(renderer);
+                deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
+            }
+        }
+        else if(mode == 3){
+            if(is_open == 0){
+                struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
+                if(dep.xArrivee == -5)
+                    is_open = 1;
+                else{
+                    movePiece(dep, board, couleur);
+                    last_deplacements[last] = dep;
+                    last++;
+                }
+                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                couleur = BLANC;
+                display_whoplay(renderer, couleur);
+                SDL_RenderPresent(renderer);
+                nbDeplacements = 0;
+                deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
+            }
+            if(is_open == 1){
+                if(couleur == NOIR){
+                    struct Deplacement rep1 = main_minmax(4,couleur,board);
+                    if (rep1.xArrivee == -5){
+                        nbDeplacements = 0;
+                        continue;
                     }
                 }
+                else
+                {
+                    struct Deplacement rep2 = main_minmax(3,couleur,board);
+                    if (rep2.xArrivee == -5){
+                        nbDeplacements = 0;
+                        continue;
+                    }
+                }
+                    
+                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                if (couleur == BLANC)
+                    couleur = NOIR;
+                else
+                    couleur = BLANC;
+                display_whoplay(renderer, couleur);
+                SDL_RenderPresent(renderer);
+                nbDeplacements = 0;
+                deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
+            }
         }
-        if(mode == 1){
-            if (SDL_PollEvent(&e) != 0)
-                if (e.type == SDL_QUIT)
-                    return;
-                else if (e.type == SDL_MOUSEBUTTONUP){
-                    // int* dp = dead_pieces(board, couleur);
-                    // display_dead_piece(renderer, dp, couleur, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                    SDL_GetMouseState(&x, &y);
-                    int piece_to_movex = transcription(x);
-                    int piece_to_movey = transcription(y);
-                    if(move.xDepart == -1 && board[piece_to_movey][piece_to_movex].type != PAS_DE_PIECE && board[piece_to_movey][piece_to_movex].couleur == couleur){
+        else if (SDL_PollEvent(&e) != 0)
+            if (e.type == SDL_MOUSEBUTTONUP){
+                //dead_pieces(result, board, couleur, &i);
+                //display_dead_piece(result, board, renderer, couleur, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface,  black_cavalier_surface, black_rook_surface, black_king_surface, black_queen_surface);
+                SDL_GetMouseState(&x, &y);
+                if(x>1430 && x<1480 && y<70 && y>20){
+                    display_left_game(renderer);
+                    SDL_RenderPresent(renderer);
+                    while (true)
+                        if (SDL_PollEvent(&e) != 0)
+                            if (e.type == SDL_QUIT)
+                                return 0;
+                            else if (e.type == SDL_MOUSEBUTTONUP){
+                                SDL_GetMouseState(&x, &y);
+                                if(x>500 && x<1000 && y<660 && y>500){
+                                    fun_main(renderer, window);
+                                    return;
+                                }
+                                else if(x>1050 && x<1150 && y<270 && y>170){
+                                    display_menu(renderer);
+                                    display_whoplay(renderer, couleur);
+                                    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                    SDL_RenderPresent(renderer);
+                                    break;
+                                }
+                            }
+                }
+                int piece_to_movex = transcription(x);
+                int piece_to_movey = transcription(y);
+                if(move.xDepart == -1 && board[piece_to_movey][piece_to_movex].type != PAS_DE_PIECE && board[piece_to_movey][piece_to_movex].couleur == couleur){
+                    move.xDepart = piece_to_movey;
+                    move.yDepart = piece_to_movex;
+                    display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                    SDL_RenderPresent(renderer);
+                }
+                else{
+                    move.xArrivee = piece_to_movey;
+                    move.yArrivee = piece_to_movex;
+                    if(board[piece_to_movey][piece_to_movex].couleur == couleur){
                         move.xDepart = piece_to_movey;
                         move.yDepart = piece_to_movex;
+                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                         display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                         SDL_RenderPresent(renderer);
                     }
-                    else{
-                        move.xArrivee = piece_to_movey;
-                        move.yArrivee = piece_to_movex;
-                        if(board[piece_to_movey][piece_to_movex].couleur == couleur){
-                            move.xDepart = piece_to_movey;
-                            move.yDepart = piece_to_movex;
-                            draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                            display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                            SDL_RenderPresent(renderer);
-                        }
-                        else if(board[move.xDepart][move.yDepart].type == ROI && (piece_to_movey == 7 && piece_to_movex == 6) || (piece_to_movey == 7 && piece_to_movex == 2) || (piece_to_movey == 0 && piece_to_movex == 6) || (piece_to_movey == 0 && piece_to_movex == 2) && board[move.xDepart][move.yDepart].test_roquable == 1){
-                            board[move.xDepart][move.yDepart].test_roquable = 0;
-                            if(piece_to_movex == 2)
-                                move.xDepart = -3;
-                            else
-                                move.xDepart = -2;
+                    else if(board[move.xDepart][move.yDepart].type == ROI && (piece_to_movey == 7 && piece_to_movex == 6) || (piece_to_movey == 7 && piece_to_movex == 2) || (piece_to_movey == 0 && piece_to_movex == 6) || (piece_to_movey == 0 && piece_to_movex == 2)){
+                        if(piece_to_movex == 2)
+                            move.xDepart = -3;
+                        else
+                            move.xDepart = -2;
+                        if(estPresent(move, deplacements, nbDeplacements)){
                             movePiece(move, board, couleur);
                             draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             SDL_RenderPresent(renderer);
                             move.xDepart = -1;
                             move.yDepart = -1;
-                            if (couleur == BLANC)
-                                couleur = NOIR;
-                            else
+                            if (couleur == NOIR)
                                 couleur = BLANC;
+                            else
+                                couleur = NOIR;
+                            nbDeplacements = 0;
                             deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
-                            }
-                        else if(!estPresent(move, deplacements, nbDeplacements)){
+                        }
+                        else{
                             draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             SDL_RenderPresent(renderer);
                             move.xDepart = -1;
                             move.yDepart = -1;
                         }
-                        else{
-                            movePiece(move, board, couleur);
-                            draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                            display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                            SDL_RenderPresent(renderer);
-                            move.xDepart = -1;
-                            move.yDepart = -1;
-                            if (couleur == BLANC)
-                                couleur = NOIR;
-                            else
-                                couleur = BLANC;
-                            nbDeplacements = 0;
-                            deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
-                        }
                     }
-                
-                }
-        }
-        else if(mode == 2){
-            if(couleur == NOIR){
-                if(is_open == 0){
-                    struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
-                    if(dep.xArrivee == -5)
-                        is_open = 1;
+                    else if(!estPresent(move, deplacements, nbDeplacements)){
+                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                        SDL_RenderPresent(renderer);
+                        move.xDepart = -1;
+                        move.yDepart = -1;
+                    }
                     else{
-                        movePiece(dep, board, couleur);
-                        last_deplacements[last] = dep;
+                        last_deplacements[last] = move;
                         last++;
+                        movePiece(move, board, couleur);
+                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                        display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                        if (couleur == NOIR)
+                            couleur = BLANC;
+                        else
+                            couleur = NOIR;
+                        display_whoplay(renderer, couleur);
+                        move.xDepart = -1;
+                        move.yDepart = -1;
+                        SDL_RenderPresent(renderer);
+                        nbDeplacements = 0;
+                        deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
                     }
-                    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                    SDL_RenderPresent(renderer);
-                    nbDeplacements = 0;
-                    couleur = BLANC;
-                    deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
                 }
-                if(is_open == 1){
-                    main_minmax(4,NOIR,board);
-                    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                    SDL_RenderPresent(renderer);
-                    nbDeplacements = 0;
-                    couleur = BLANC;
-                    deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
-                }
-            }
-            else
-                if (SDL_PollEvent(&e) != 0)
-                    if (e.type == SDL_QUIT)
-                        return;
-                    else if (e.type == SDL_MOUSEBUTTONUP){
-                        // int* dp = dead_pieces(board, couleur);
-                        // display_dead_piece(renderer, dp, couleur, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        SDL_GetMouseState(&x, &y);
-                        int piece_to_movex = transcription(x);
-                        int piece_to_movey = transcription(y);
-                        if(move.xDepart == -1 && board[piece_to_movey][piece_to_movex].type != PAS_DE_PIECE && board[piece_to_movey][piece_to_movex].couleur == couleur){
-                            move.xDepart = piece_to_movey;
-                            move.yDepart = piece_to_movex;
-                            display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                            SDL_RenderPresent(renderer);
-                        }
-                        else{
-                            move.xArrivee = piece_to_movey;
-                            move.yArrivee = piece_to_movex;
-                            if(board[piece_to_movey][piece_to_movex].couleur == couleur){
-                                move.xDepart = piece_to_movey;
-                                move.yDepart = piece_to_movex;
-                                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                                display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                                SDL_RenderPresent(renderer);
-                            }
-                            else if(board[move.xDepart][move.yDepart].type == ROI && (piece_to_movey == 7 && piece_to_movex == 6) || (piece_to_movey == 7 && piece_to_movex == 2) || (piece_to_movey == 0 && piece_to_movex == 6) || (piece_to_movey == 0 && piece_to_movex == 2) && board[move.xDepart][move.yDepart].test_roquable == 1){
-                                if(piece_to_movex == 2)
-                                    move.xDepart = -3;
-                                else
-                                    move.xDepart = -2;
-                                movePiece(move, board, couleur);
-                                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                                display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                                SDL_RenderPresent(renderer);
-                                move.xDepart = -1;
-                                move.yDepart = -1;
-                                couleur = NOIR;
-                                deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
-                                }
-                            else if(!estPresent(move, deplacements, nbDeplacements)){
-                                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                                SDL_RenderPresent(renderer);
-                                move.xDepart = -1;
-                                move.yDepart = -1;
-                            }
-                            else{
-                                last_deplacements[last] = move;
-                                last++;
-                                movePiece(move, board, couleur);
-                                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                                display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                                SDL_RenderPresent(renderer);
-                                move.xDepart = -1;
-                                move.yDepart = -1;
-                                couleur = NOIR;
-                                deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
-                            }
-                        }
-                }
-        }
-        else{
-            if(is_open == 0){
-                    struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
-                    if(dep.xArrivee == -5)
-                        is_open = 1;
-                    else{
-                        movePiece(dep, board, couleur);
-                        last_deplacements[last] = dep;
-                        last++;
-                    }
-                    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                    SDL_RenderPresent(renderer);
-                    nbDeplacements = 0;
-                    couleur = BLANC;
-                    deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
-                }
-                if(is_open == 1){
-                    if(couleur == NOIR){
-                        struct Deplacement rep1 = main_minmax(4,couleur,board);
-                        if (rep1.xArrivee == -5){
-                            nbDeplacements = 0;
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        struct Deplacement rep2 = main_minmax(3,couleur,board);
-                        if (rep2.xArrivee == -5){
-                            nbDeplacements = 0;
-                            continue;
-                        }
-                    }
-                        
-                    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                    SDL_RenderPresent(renderer);
-                    nbDeplacements = 0;
-                    if (couleur == BLANC)
-                        couleur = NOIR;
-                    else
-                        couleur = BLANC;
-                    deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
-                }
-        }
-
-    }
+        
+            }   
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
-
-
 
 
 void fun_main(SDL_Renderer* renderer, SDL_Window* window){
@@ -2514,16 +2542,34 @@ void fun_main(SDL_Renderer* renderer, SDL_Window* window){
                 return 0;
             else if (e.type == SDL_MOUSEBUTTONUP){
                 SDL_GetMouseState(&x, &y);
-                if(x<550 && x>150 && y<487 && y>400){
-                    play(window, renderer, 1);
+                if(x<1050 && x>450 && y<937 && y>750){
+                    play(window, renderer, 1, 0);
                     break;
                 }
-                else if(x<550 && x>150 && y<387 && y>300){
-                    play(window, renderer, 2);
+                else if(x<1050 && x>450 && y<737 && y>550){
+                    display_choose_difficulty(renderer);
+                    SDL_RenderPresent(renderer);
+                    while (true)
+                        if (SDL_PollEvent(&e) != 0)
+                            if (e.type == SDL_QUIT)
+                                return 0;
+                            else if (e.type == SDL_MOUSEBUTTONUP){
+                                SDL_GetMouseState(&x, &y);
+                                if(x>500 && x<1000 && y<510 && y>350)
+                                    play(window, renderer, 2, 2);
+                                else if(x>500 && x<1000 && y<710 && y>550)
+                                    play(window, renderer, 2, 3);
+                                else if(x>500 && x<1000 && y<910 && y>750)
+                                    play(window, renderer, 2, 4);
+                                else if(x>1050 && x<1150 && y<120 && y>20){
+                                    fun_main(renderer, window);
+                                    break;
+                                }
+                            }   
                     break;
                 }
-                else if(x<550 && x>150 && y<287 && y>200){
-                    play(window, renderer, 3);
+                else if(x<1050 && x>450 && y<537 && y>350){
+                    play(window, renderer, 3, 0);
                     break;
                 }
             }
@@ -2536,7 +2582,7 @@ int main() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 
-    SDL_Window* window = SDL_CreateWindow("Chess SUV", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 700, 512, SDL_WINDOW_SHOWN);
+    SDL_Window* window = SDL_CreateWindow("Chess SUV", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1500, 980, SDL_WINDOW_SHOWN);
     if (window == NULL)
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 
