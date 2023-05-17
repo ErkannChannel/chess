@@ -1,3 +1,5 @@
+
+
 #include <stdio.h>
 #include <math.h>
 #include "src/gui.c"
@@ -10,22 +12,49 @@
 #define MAX_MOVES_PER_LINE 256
 #define MAX_MOVES_HISTORY 50
 
-int RoiEnEchec_player(int xRoi,int yRoi, int couleur,struct Piece board[8][8])
+
+
+
+
+void afficheDeplacements(struct Deplacement* deplacements, int nbDeplacements) {
+    for (int i = 0; i < nbDeplacements; i++)
+        printf("Deplacement %d: %c%d -> %c%d\n", i+1, 'a' + deplacements[i].yDepart, 8 - deplacements[i].xDepart, 'a' + deplacements[i].yArrivee, 8 - deplacements[i].xArrivee);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int RoiEnEchec_player(int xRoi,int yRoi, int couleur,struct Piece board[8][8],int xRoiEnnemie, int yRoiEnnemie)
 {
  int j;
  int i;
     if (couleur == BLANC)
     {
+        
         i = xRoi-1;
         j = yRoi-1;
         if (i >= 0 && j >= 0 && board[i][j].type == PION && board[i][j].couleur != couleur)
         {
+            //printf("test1\n");
             return 1;
         }
         i = xRoi-1;
         j = yRoi+1;
         if (i >= 0 && j < 8 && board[i][j].type == PION && board[i][j].couleur != couleur)
         {
+            //printf("test2\n");
             return 1;
         } 
     }
@@ -35,12 +64,14 @@ int RoiEnEchec_player(int xRoi,int yRoi, int couleur,struct Piece board[8][8])
         j = yRoi-1;
         if (i < 8 && j >= 0 && board[i][j].type == PION && board[i][j].couleur != couleur)
         {
+            //printf("test3\n");
             return 1;
         }
         i = xRoi+1;
         j = yRoi+1;
         if (i < 8 && j < 8 && board[i][j].type == PION && board[i][j].couleur != couleur)
         {
+            //printf("test4\n");
             return 1;
         }
     }
@@ -50,13 +81,14 @@ int RoiEnEchec_player(int xRoi,int yRoi, int couleur,struct Piece board[8][8])
 if (xRoi - 2 >= 0) {
         if (yRoi - 1 >= 0) {
             if (board[xRoi - 2][yRoi - 1].type == CAVALIER && board[xRoi - 2][yRoi - 1].couleur != couleur ) {
-
+                //printf("test5\n");
             return 1;
             
             }
         }
         if (yRoi + 1 < 8) {
             if (board[xRoi - 2][yRoi + 1].type == CAVALIER && board[xRoi - 2][yRoi + 1].couleur != couleur) {
+                //printf("test6\n");
             return 1;
             
             
@@ -68,11 +100,13 @@ if (xRoi - 2 >= 0) {
     if (xRoi + 2 < 8) {
         if (yRoi - 1 >= 0) {
             if (board[xRoi + 2][yRoi - 1].type == CAVALIER && board[xRoi + 2][yRoi - 1].couleur != couleur) {
+                //printf("test7\n");
             return 1;
             }
         }
         if (yRoi + 1 < 8) {
             if (board[xRoi + 2][yRoi + 1].type == CAVALIER && board[xRoi + 2][yRoi + 1].couleur != couleur) {
+                //printf("test8\n");
             return 1;
             }
         }
@@ -80,11 +114,13 @@ if (xRoi - 2 >= 0) {
     if (yRoi - 2 >= 0) {
         if (xRoi - 1 >= 0) {
             if (board[xRoi - 1][yRoi - 2].type == CAVALIER && board[xRoi - 1][yRoi - 2].couleur != couleur) {
+                //printf("test9\n");
             return 1;
             }
         }
         if (xRoi + 1 < 8) {
             if (board[xRoi + 1][yRoi - 2].type == CAVALIER && board[xRoi + 1][yRoi - 2].couleur != couleur) {
+                //printf("test10\n");
             return 1;
             }
         }
@@ -92,11 +128,13 @@ if (xRoi - 2 >= 0) {
     if (yRoi + 2 < 8) {
         if (xRoi - 1 >= 0) {
             if (board[xRoi - 1][yRoi + 2].type == CAVALIER && board[xRoi - 1][yRoi + 2].couleur != couleur) {
+                //printf("test11\n");
             return 1;
             }
         }
         if (xRoi + 1 < 8) {
             if (board[xRoi + 1][yRoi + 2].type == CAVALIER && board[xRoi + 1][yRoi + 2].couleur != couleur) {
+                //printf("test12\n");
             return 1;
         }
         }
@@ -107,7 +145,7 @@ if (xRoi - 2 >= 0) {
 
 
 
-
+    //printf("test\n");
     i = xRoi+1;
     j = yRoi+1;
 
@@ -121,6 +159,7 @@ if (xRoi - 2 >= 0) {
     }
     if (i < 8 && j < 8 && (board[i][j].type == DAME || board[i][j].type == FOU) && board[i][j].couleur != couleur )
     {
+        //printf("test13\n");
         return 1;
     }
 
@@ -134,6 +173,7 @@ if (xRoi - 2 >= 0) {
     }
     if (i >= 0 && j >= 0 && (board[i][j].type == DAME || board[i][j].type == FOU) && board[i][j].couleur != couleur)
     {
+        //printf("test14\n");
         return 1;
     }
 
@@ -147,6 +187,7 @@ if (xRoi - 2 >= 0) {
     }
     if (i >= 0 && j < 8 && (board[i][j].type == DAME || board[i][j].type == FOU) && board[i][j].couleur != couleur)
     {
+        //printf("test15\n");
         return 1;
     }
 
@@ -160,6 +201,7 @@ if (xRoi - 2 >= 0) {
     }
     if (i < 8 && j >= 0 && (board[i][j].type == DAME || board[i][j].type == FOU) && board[i][j].couleur != couleur)
     {
+        //printf("test16\n");
         return 1;
     }
 
@@ -172,6 +214,7 @@ if (xRoi - 2 >= 0) {
     }
     if (i < 8 && (board[i][j].type == DAME || board[i][j].type == TOUR) && board[i][j].couleur != couleur)
     {
+        //printf("test17\n");
         return 1;
     }
 
@@ -184,6 +227,7 @@ if (xRoi - 2 >= 0) {
     }
     if (i >= 0 && (board[i][j].type == DAME || board[i][j].type == TOUR) && board[i][j].couleur != couleur)
     {
+        //printf("test18\n");
         return 1;
     }
 
@@ -196,6 +240,7 @@ if (xRoi - 2 >= 0) {
     }
     if (j < 8 && (board[i][j].type == DAME || board[i][j].type == TOUR) && board[i][j].couleur != couleur)
     {
+        //printf("test19\n");
         return 1;
     }
 
@@ -207,42 +252,66 @@ if (xRoi - 2 >= 0) {
         j--;
     }
 
+
     if (j >= 0 && (board[i][j].type == DAME || board[i][j].type == TOUR) && board[i][j].couleur != couleur)
     {
+        //printf("test20\n");
         return 1;
     }
-    if (board[xRoi+1][yRoi+1].type == ROI &&  board[xRoi+1][yRoi+1].couleur != couleur)
+
+
+
+    if (xRoi ==  xRoiEnnemie || xRoi ==  xRoiEnnemie-1  || xRoi ==  xRoiEnnemie+1 )
     {
+        if (yRoi ==  yRoiEnnemie || yRoi ==  yRoiEnnemie-1  || yRoi ==  yRoiEnnemie+1 )
+        {
+            return 1;
+        }
+    }
+    
+
+    /*
+    if (case_existe(xRoi+1,yRoi+1) && board[xRoi+1][yRoi+1].type == ROI &&  board[xRoi+1][yRoi+1].couleur != couleur)
+    {
+        printf("test21\n");
         return 1;
     }
     if (board[xRoi][yRoi+1].type == ROI &&  board[xRoi][yRoi+1].couleur != couleur)
     {
+        printf("test22\n");
         return 1;
     }
     if (board[xRoi-1][yRoi+1].type == ROI &&  board[xRoi-1][yRoi+1].couleur != couleur)
     {
+        printf("test23\n");
         return 1;
     }
     if (board[xRoi+1][yRoi].type == ROI &&  board[xRoi+1][yRoi].couleur != couleur)
     {
+        printf("test24\n");
         return 1;
     }
     if (board[xRoi-1][yRoi].type == ROI &&  board[xRoi-1][yRoi].couleur != couleur)
     {
+        printf("test25\n");
         return 1;
     }
     if (board[xRoi+1][yRoi-1].type == ROI &&  board[xRoi+1][yRoi-1].couleur != couleur)
     {
+        printf("test26\n");
         return 1;
     }
     if (board[xRoi][yRoi-1].type == ROI &&  board[xRoi][yRoi-1].couleur != couleur)
     {
+        printf("test27\n");
         return 1;
     }
     if (board[xRoi-1][yRoi-1].type == ROI &&  board[xRoi-1][yRoi-1].couleur != couleur)
     {
+        printf("test28\n");
         return 1;
     }
+    */
     return 0;
 }
 
@@ -787,11 +856,11 @@ void ajouterDeplacementPion(int x, int y, int xRoi, int yRoi, struct Deplacement
                 ajout_deplacement(x, y ,x-2 , y,deplacements,nombreDeplacements ); 
             }
         }
-        if ( (cloue == 0 || cloue == 4) && case_existe(x-1,y+1) && board[x-1][y+1].couleur == 0 ) {
+        if ( (cloue == 0 || cloue == 3) && case_existe(x-1,y+1) && board[x-1][y+1].couleur == 0 ) {
             //printf("test 5 : %d \n",board[x-1][y+1].type );
             ajout_deplacement(x, y ,x-1 , y+1,deplacements,nombreDeplacements );    
         }
-        if ( (cloue == 0 || cloue == 3 )&&  case_existe(x-1,y-1) && board[x-1][y-1].couleur == 0 ) {
+        if ( (cloue == 0 || cloue == 4 )&&  case_existe(x-1,y-1) && board[x-1][y-1].couleur == 0 ) {
             //printf("test 6 : %d \n",board[x-1][y-1].type );
             ajout_deplacement(x, y ,x-1 , y-1,deplacements,nombreDeplacements );    
         }
@@ -810,11 +879,11 @@ void ajouterDeplacementPion(int x, int y, int xRoi, int yRoi, struct Deplacement
                 ajout_deplacement(x, y ,x+2 , y,deplacements,nombreDeplacements ); 
             }
         }
-        if ( (cloue == 0 || cloue == 3) && case_existe(x+1,y+1) && board[x+1][y+1].couleur == 1 ) {
+        if ( (cloue == 0 || cloue == 4) && case_existe(x+1,y+1) && board[x+1][y+1].couleur == 1 ) {
             //printf("test 7 : %d \n",board[x+1][y+1].type );
             ajout_deplacement(x, y ,x+1 , y+1,deplacements,nombreDeplacements );    
         }
-        if ( (cloue == 0 || cloue == 4) && case_existe(x+1,y-1) && board[x+1][y-1].couleur == 1 ) {
+        if ( (cloue == 0 || cloue == 3) && case_existe(x+1,y-1) && board[x+1][y-1].couleur == 1 ) {
             //printf("test 8 : %d \n",board[x+1][y-1].type );
             ajout_deplacement(x, y ,x+1 , y-1,deplacements,nombreDeplacements );    
         }
@@ -946,7 +1015,8 @@ void ajouterDeplacementTour(int x, int y, int xRoi, int yRoi, struct Deplacement
 void ajouterDeplacementFou(int x, int y, int xRoi, int yRoi, struct Deplacement deplacements[], int* nombreDeplacements, struct Piece board[8][8]) {
     int i, j;
     int cloue = piece_cloue(x,y,xRoi,yRoi,board);
-    if (cloue == 0 || cloue == 3)
+    //printf("fou clouer %i\n", cloue);
+    if (cloue == 0 || cloue == 4)
     {
         for (i = x + 1, j = y + 1; i < 8 && j < 8; i++, j++) {
             if (board[i][j].type == PAS_DE_PIECE) {
@@ -969,7 +1039,7 @@ void ajouterDeplacementFou(int x, int y, int xRoi, int yRoi, struct Deplacement 
             }
         }
     }
-    if (cloue == 0 || cloue == 4)
+    if (cloue == 0 || cloue == 3)
     {
         for (i = x + 1, j = y - 1; i < 8 && j >= 0; i++, j--) {
             if (board[i][j].type == PAS_DE_PIECE) {
@@ -998,27 +1068,42 @@ void ajouterDeplacementFou(int x, int y, int xRoi, int yRoi, struct Deplacement 
 
 void ajouterDeplacementRoi(int x, int y, struct Deplacement deplacements[], int* nombreDeplacements, struct Piece board[8][8]) {
     // Vérification des 8 cases adjacentes au roi
+    int positionEnnemie = trouverRoi(!board[x][y].couleur,board);
+    int xRoiEnnemie = positionEnnemie/10;
+    int yRoiEnnemie = positionEnnemie%10;
+    int couleur = board[x][y].couleur;
     for (int i = -1; i <= 1; i++) {
         for (int j = -1; j <= 1; j++) {
             if (case_existe(x + i, y + j) && (i != 0 || j != 0)) {
-                if (board[x + i][y + j].couleur != board[x][y].couleur &&  0 == RoiEnEchec_player(x+i,y+j,board[x][y].couleur,board)) {
+                
+                if (board[x + i][y + j].couleur != couleur &&  0 == RoiEnEchec_player(x+i,y+j,couleur,board,xRoiEnnemie,yRoiEnnemie)) {
                     ajout_deplacement(x, y ,x+i , y+j,deplacements,nombreDeplacements );
                 }
             }
         }
     }
+
+
+ 
+    //printf("tst damien %i %i %i %i\n",a.xArrivee,a.xDepart,a.yArrivee,a.yDepart);
     
+    
+    //printf("test30 %i \n",board[x][y].test_roquable==1 &&((board[x][y].couleur == BLANC && x == 7 && y == 5) ||(board[x][y].couleur == NOIR && x == 0 && y == 5)));
+    //printf("test 25 %i \n", board[x][y+3].test_roquable==1 && board[x][y+1].type == PAS_DE_PIECE && board[x][y+2].type == PAS_DE_PIECE);
     // Vérification pour le roque
-    if (board[x][y].test_roquable==1 &&((board[x][y].couleur == BLANC && x == 7 && y == 5) ||(board[x][y].couleur == NOIR && x == 0 && y == 5))) {
-        if (board[x][y+3].test_roquable==1 && board[x][y+1].type == PAS_DE_PIECE && board[x][y+2].type == PAS_DE_PIECE) {
-            printf("petit roque possible\n");
+    //printf("test roquable %i\n",board[x][y].test_roquable);
+    if (board[x][y].test_roquable==1 &&((board[x][y].couleur == BLANC && x == 7 && y == 4) ||(board[x][y].couleur == NOIR && x == 0 && y == 4))) {
+        if (board[x][y+3].test_roquable==1 && board[x][y+1].type == PAS_DE_PIECE && board[x][y+2].type == PAS_DE_PIECE  && !RoiEnEchec_player(x,y+1,couleur,board,xRoiEnnemie,yRoiEnnemie) && !RoiEnEchec_player(x,y+2,couleur,board,xRoiEnnemie,yRoiEnnemie) ) {
+            //printf("petit roque possible\n");
             ajout_deplacement(-2, y ,x , y+3,deplacements,nombreDeplacements );
         }
-        if (board[x][y-4].test_roquable==1 && board[x][y-1].type == PAS_DE_PIECE && board[x][y-2].type == PAS_DE_PIECE && board[x][y-3].type == PAS_DE_PIECE) {
-            printf("grand roque possible\n");
+        if (board[x][y-4].test_roquable==1 && board[x][y-1].type == PAS_DE_PIECE && board[x][y-2].type == PAS_DE_PIECE && board[x][y-3].type == PAS_DE_PIECE && !RoiEnEchec_player(x,y-1,couleur,board,xRoiEnnemie,yRoiEnnemie) && !RoiEnEchec_player(x,y-2,couleur,board,xRoiEnnemie,yRoiEnnemie)) {
+            //printf("grand roque possible\n");
             ajout_deplacement(-3, y ,x , y-4,deplacements,nombreDeplacements );
         }
     }
+    
+
     
 }
 
@@ -1593,6 +1678,7 @@ void ajouterDeplacementsPossibles( int couleur, struct Deplacement deplacements[
             }
         }
     }
+
     
 }
 
@@ -1619,7 +1705,7 @@ void initialiserPlateau(struct Piece plateau[8][8], char* fen) {
                 plateau[i][j].type = (fen[k] == 'p') ? PION : (fen[k] == 'n') ? CAVALIER : (fen[k] == 'b') ? FOU : (fen[k] == 'r') ? TOUR : (fen[k] == 'q') ? DAME : ROI;
                 plateau[i][j].couleur = (fen[k] < 'a') ? 1 : 0;
                 plateau[i][j].name = fen[k] - 'a' + 'A';
-                plateau[i][j].test_roquable = 0;
+                plateau[i][j].test_roquable = 1;
                 ////printf("test 66 %c \n", fen[k]);
                 j++;
             }
@@ -1628,7 +1714,7 @@ void initialiserPlateau(struct Piece plateau[8][8], char* fen) {
                 plateau[i][j].type = (fen[k] == 'P') ? PION : (fen[k] == 'N') ? CAVALIER : (fen[k] == 'B') ? FOU : (fen[k] == 'R') ? TOUR : (fen[k] == 'Q') ? DAME : ROI;
                 plateau[i][j].couleur = (fen[k] < 'a') ? 1 : 0;
                 plateau[i][j].name = fen[k];
-                plateau[i][j].test_roquable = 0;
+                plateau[i][j].test_roquable = 1;
                 ////printf("test 55 %c \n", fen[k]);
                 j++;
             }
@@ -1684,11 +1770,14 @@ void initialiserPlateau(struct Piece plateau[8][8], char* fen) {
 
 void roi_mange_menace(int xmenace,int ymenace,int xRoi,int yRoi,struct Deplacement* deplacements,int* nbDeplacements,struct Piece board[8][8],int couleur )
 {
+    int positionEnnemie = trouverRoi(!couleur,board);
+    int xRoiEnnemie = positionEnnemie/10;
+    int yRoiEnnemie = positionEnnemie%10;
     if ((xmenace-1 == xRoi || xmenace == xRoi || xmenace+1 == xRoi) && (ymenace-1 == yRoi || ymenace == yRoi || ymenace+1 == yRoi))
     {
-        if (RoiEnEchec_player(xmenace,ymenace,couleur,board) == 0)
+        if (RoiEnEchec_player(xmenace,ymenace,couleur,board,xRoiEnnemie, yRoiEnnemie) == 0)
         {
-            ajout_deplacement(xRoi, yRoi ,xmenace , ymenace,deplacements,nbDeplacements );
+            ajout_deplacement(xRoi, yRoi ,xmenace , ymenace,deplacements,nbDeplacements);
         }
 
     }
@@ -1711,7 +1800,8 @@ void deplacementsPossibles(int couleur,struct Deplacement* deplacements, int* nb
         }
         ajouterDeplacementRoi(xRoi,yRoi,deplacements,nbDeplacements,board);
     }
-    
+
+    //afficheDeplacements(deplacements,*nbDeplacements);
 }
 
 
@@ -1739,18 +1829,19 @@ void mettre_la_case_a_vide(int x,int y,struct Piece board[8][8])
     board[x][y].couleur = -1;
     board[x][y].type = PAS_DE_PIECE;
     board[x][y].name = ' ';
+    board[x][y].test_roquable = 0;
 }
 
 
 void movePiece(struct Deplacement deplacement, struct Piece board[8][8], int couleur)
 {
-
     if (deplacement.xDepart == -2)
     {
         if (couleur == BLANC)
         {
             board[7][6] = board[7][4];
             board[7][5] = board[7][7];
+            //printf("salut\n");
             mettre_la_case_a_vide(7,4,board);
             mettre_la_case_a_vide(7,7,board);
             board[7][6].test_roquable = 0;
@@ -1810,6 +1901,8 @@ void movePiece(struct Deplacement deplacement, struct Piece board[8][8], int cou
     board[deplacement.xDepart][deplacement.yDepart].couleur = -1;
     board[deplacement.xDepart][deplacement.yDepart].type = PAS_DE_PIECE;
     board[deplacement.xDepart][deplacement.yDepart].name = ' ';
+    board[deplacement.xArrivee][deplacement.yArrivee].test_roquable = 0;
+    board[deplacement.xDepart][deplacement.yDepart].test_roquable = 0;
 
 }
 /*
@@ -1893,6 +1986,18 @@ float calculer_position_pion(struct Piece board[8][8],int x, int y, int couleur)
 
 
 
+    return score;
+}
+
+
+float calculer_position_cavalier(struct Piece board[8][8],int x, int y, int couleur)
+{
+    float score = 0.0;
+
+    if (x == 0 || x == 7 || y == 0 || y ==7)
+    {
+        score -= 0.5;
+    }
     return score;
 }
 
@@ -2005,7 +2110,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
     
     // la tour est dans la 7 ème ranger
 
-    if (x == 1 && couleur == 1 || x == 7 && couleur == 0)
+    if (x == 1 && couleur == NOIR || x == 7 && couleur == BLANC)
     {
         score += 1;
     }
@@ -2032,7 +2137,7 @@ float calculer_score(struct Piece board[8][8], int joueur) {
                     valeur = 1.0 + 0.1 * calculer_position_pion(board,i, j,piece.couleur);
                     break;
                 case CAVALIER:
-                    valeur = 3.0;
+                    valeur = 3.0 + 0.1 * calculer_position_cavalier(board,i, j,piece.couleur);
                     break;
                 case FOU:
                     valeur = 3.25;
@@ -2073,7 +2178,7 @@ float minmax(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8
     }
     
     struct Deplacement deplacements[100];
-    int nombreDeplacements = 0 ;
+    int nombreDeplacements =0 ;
     deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
     //printf("le nombre de deplacement %i\n",nombreDeplacements);
     //afficheDeplacements( deplacements, nombreDeplacements, board);
@@ -2086,7 +2191,13 @@ float minmax(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8
         struct Piece board2[8][8];
         copy_board(board, board2); // copier le tableau board dans board2
         movePiece(deplacements[i], board2, couleur);
-        float score_children = minmax(tours_restant - 1, inverse(couleur),IA_Couleur, board2);
+        float bonus_roque =0.0;
+        if (deplacements[i].xDepart ==-2 || deplacements[i].xDepart == -3)
+        {
+            bonus_roque = 1.0;
+        }
+        
+        float score_children = minmax(tours_restant - 1, inverse(couleur),IA_Couleur, board2) - bonus_roque;
         
         score = (couleur == IA_Couleur) ? fmax2(score, score_children) : fmin2(score, score_children); // utiliser la fonction max ou min en fonction de la couleur du joueur
     }
@@ -2094,62 +2205,8 @@ float minmax(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8
     return score;
 }
 
-/*
-void dead_pieces(struct Piece result[100], struct Piece board[8][8], int color,int* i) {
-    if(is_piece_dead(result,board, CAVALIER, color)){       
-        result[*i].type = CAVALIER;
-        //printf("%i\n", result[*i].type == CAVALIER);
-        result[*i].couleur = color;
-        (*i)++;
-        printf("%i \n", *i);
-    }
-    if(is_piece_dead(result,board, FOU, color)){
-        result[*i].type = FOU;
-        result[*i].couleur = color;
-        (*i)++;
-    }
-    if(is_piece_dead(result,board, TOUR, color)){
-        result[*i].type = TOUR;
-        result[*i].couleur = color;
-        (*i)++;
-    }
-    if(is_piece_dead(result, board, DAME, color)){
-        result[*i].type = DAME;
-        result[*i].couleur = color;
-        (*i)++;
-    }
-}
-
-void afficher(struct Piece result[100]){
-    for (int x = 0; x < 10; x++)
-        printf("%i |", result[x].type);
-    printf("\n");
-}
-
-int nb_piece(struct Piece result[100], int piece_type, int piece_color){
-    int res = 0;
-    for (int x = 0; x < 100; x++)
-        if (result[x].type == piece_type && result[x].couleur == piece_color)
-            res++;
-    return res;
-
-}
 
 
-int is_piece_dead(struct Piece result[100],struct Piece board[8][8], int piece_type, int piece_color) {
-    int comp = 0;
-    //printf("%i\n", nb_piece(result, piece_type, piece_color));
-    for (int x = 0; x < BOARD_SIZE; x++)
-        for (int y = 0; y < BOARD_SIZE; y++)
-            if (board[x][y].couleur == piece_color && board[x][y].type == piece_type && piece_type == DAME)
-                return 0;
-            else if (board[x][y].couleur == piece_color && ((piece_type == CAVALIER && board[x][y].type == CAVALIER) ||(piece_type == FOU && board[x][y].type == FOU)|| (piece_type == TOUR && board[x][y].type == TOUR)))
-                comp++;
-    if(comp + nb_piece(result, piece_type, piece_color) == 2)
-        return 0;
-    return 1;
-}
-*/
 
 struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece board[8][8])
 {
@@ -2157,6 +2214,17 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
     struct Deplacement deplacements[100];
     int nombreDeplacements=0;
     deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
+
+
+    float score = calculer_score(board, couleur);
+
+    printf("score : %f\n",score);
+
+
+    printf("nb deplacemnt : %i\n",nombreDeplacements);
+
+    afficheDeplacements(deplacements, nombreDeplacements);
+
     if (nombreDeplacements == 0)
     {
         return (struct Deplacement){-5,-5,-5,-5};
@@ -2187,13 +2255,26 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
 }
 
 
-struct Deplacement conversionString(char* str) {
+struct Deplacement conversionString(char* str, struct Piece board[8][8]) {
     struct Deplacement resultat;
- 
+    
     resultat.xDepart = 7-(str[1] - '1');
     resultat.yDepart = str[0] - 'a';
     resultat.xArrivee = 7 -( str[3] - '1');
     resultat.yArrivee = str[2] - 'a';
+
+    if (board[resultat.xDepart][resultat.yDepart].type == ROI)
+    {
+        if (resultat.xDepart - resultat.xArrivee == 2)
+        {
+            resultat.xDepart = -3;
+        }
+        else if (resultat.xDepart - resultat.xArrivee == -2)
+        {
+            resultat.xDepart = -2;
+        }
+    }
+    
     return resultat;
 }
 
@@ -2221,19 +2302,23 @@ struct Deplacement ouverture_bot(int argc, struct Deplacement argv[], int* nb_de
         while (line[i] != '\0') {
             // Récupère le prochain mouvement de la ligne
             //i = 0;
-            struct Deplacement mouvement = conversionString(&line[i]);
+            struct Deplacement mouvement = conversionString(&line[i],board);
             // Vérifie si le mouvement correspond à l'élément suivant du tableau argv
-            if (mouvement.xDepart == argv[k].xDepart
+
+            if (    ((mouvement.xDepart == -2 || mouvement.xDepart == -3) && mouvement.xDepart == argv[k].xDepart)
+                    || (mouvement.xDepart == argv[k].xDepart
                     && mouvement.yDepart == argv[k].yDepart
                     && mouvement.xArrivee == argv[k].xArrivee
-                    && mouvement.yArrivee == argv[k].yArrivee) {
+                    && mouvement.yArrivee == argv[k].yArrivee)) {
                 // Le mouvement correspond, on passe à l'élément suivant de argv
                 (k)++;
                 i += 5;
                 // Si on a atteint la fin de argv, on retourne NULL
                 if (k >= *nb_deplacements) {
                     fclose(fp);
-                    return conversionString(&line[i]);
+                    struct Deplacement dep = conversionString(&line[i],board);
+                    printf("mouvement %i %i %i %i\n",dep.xArrivee,dep.xDepart,dep.yArrivee,dep.yDepart);
+                    return dep;
                 }
             } else {
                 // Le mouvement ne correspond pas, on passe à la ligne suivante
@@ -2254,6 +2339,7 @@ struct Deplacement ouverture_bot(int argc, struct Deplacement argv[], int* nb_de
 }
 
 
+
 int transcription(int x){
     int comp = x;
     int res = 0;
@@ -2269,7 +2355,7 @@ int transcription(int x){
 void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_bot)
 {
     struct Piece board[8][8];
-    initialiserPlateau(board, "r1bqkbnr/pppppppp/2n5/4N3/8/8/PPPPPPPP/RNBQKB1R b KQkq - 3 2");
+    initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 
     int nbDeplacements = 0;
@@ -2333,9 +2419,7 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_b
     move.yArrivee = -1;
     int x, y;
     while (true)
-        if (SDL_PollEvent(&e) != 0 && e.type == SDL_QUIT)
-                return;
-        else if(nbDeplacements == 0){
+        if(nbDeplacements == 0){
                 nbDeplacements = 1;
                 draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                 display_end_screen(renderer);
@@ -2524,7 +2608,9 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_b
                     }
                 }
         
-            }   
+            }
+            else if(e.type == SDL_QUIT)
+                return;
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
