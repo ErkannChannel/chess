@@ -294,6 +294,24 @@ void display_end_screen(SDL_Renderer* renderer){
   TTF_Quit();
 }
 
+
+void display_move(int X, int Y, struct Piece board[8][8], struct Deplacement* deplacements, int nbDeplacements, SDL_Renderer* renderer){
+  SDL_SetRenderDrawColor(renderer, 0x31, 0x2E, 0x2B, 0xFF);
+  afficheDeplacements(deplacements, nbDeplacements);
+  for (int i = 0; i < nbDeplacements; i++)
+      if(deplacements[i].xDepart == X && deplacements[i].yDepart == Y){
+      int posX = deplacements[i].yArrivee * TILE_SIZE;
+      int posY = deplacements[i].xArrivee * TILE_SIZE;
+      SDL_Surface* cross_surface = IMG_Load("pieces/gray_point.png");
+      if (cross_surface == NULL)
+          printf("Error loading image: %s\n", SDL_GetError());
+      SDL_Texture* cross_texture = SDL_CreateTextureFromSurface(renderer, cross_surface);
+      SDL_Rect dst25 = { posX+37, posY+37, 50, 50 };
+      SDL_RenderCopy(renderer, cross_texture, NULL, &dst25);
+      SDL_DestroyTexture(cross_texture);
+    }
+}
+
 void display_left_game(SDL_Renderer* renderer){
   SDL_SetRenderDrawColor(renderer, 0x31, 0x2E, 0x2B, 0xFF);
   SDL_Rect tfpW = {450, 250, 600, 450};

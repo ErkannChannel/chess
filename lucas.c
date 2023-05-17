@@ -2545,6 +2545,7 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_b
                     move.xDepart = piece_to_movey;
                     move.yDepart = piece_to_movex;
                     display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                    display_move(move.xDepart, move.yDepart, board, deplacements, nbDeplacements, renderer);
                     SDL_RenderPresent(renderer);
                 }
                 else{
