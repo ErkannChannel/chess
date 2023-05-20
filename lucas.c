@@ -1,5 +1,3 @@
-
-
 #include <stdio.h>
 #include <math.h>
 #include "src/gui.c"
@@ -7,6 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
 
 #define MAX_LINE_LENGTH 1024
 #define MAX_MOVES_PER_LINE 256
@@ -1917,6 +1920,28 @@ int* dead_pieces(struct Piece board[8][8], int couleur){
 */
 
 
+
+
+
+
+// Structure pour les arguments du thread
+struct ThreadArgs {
+    int tours_restant;
+    int couleur;
+    int IA_Couleur;
+    struct Piece board[8][8];
+    float result;
+};
+/*
+struct ThreadArgs2 {
+    int tours_restant;
+    int couleur;
+    struct Piece board[8][8];
+    struct Deplacement result;
+};
+*/
+
+
 float fmin2(float a, float b) {
     return a < b ? a : b;
 }
@@ -2166,6 +2191,7 @@ float calculer_score(struct Piece board[8][8], int joueur) {
 
 
 float minmax(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8][8]) {
+    pthread_testcancel();
     if (tours_restant <= 0) {
         float s = calculer_score(board, couleur);
         //affichePlateau(board);
@@ -2205,10 +2231,182 @@ float minmax(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8
     return score;
 }
 
+void minmax_intermediaire(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8][8],float* rep) {
+    struct Piece board2[8][8];
+    copy_board(board, board2);
+    *rep =  minmax(1,couleur,IA_Couleur,board2);
+    for (size_t i = 2; i < 100; i+=2)
+    {
+        copy_board(board, board2);
+        *rep =  minmax(i,couleur,IA_Couleur,board2);
+        pthread_testcancel();
+        //printf("profondeure de : %i\n",i);
+    }
+    
+    
+}
+
+// Fonction exécutée par le thread
+void* threadFunc(void* args) {
+    struct ThreadArgs* threadArgs = (struct ThreadArgs*)args;
+    minmax_intermediaire(threadArgs->tours_restant, threadArgs->couleur, threadArgs->IA_Couleur, threadArgs->board, &(threadArgs->result));
+    return NULL;
+}
 
 
 
-struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece board[8][8])
+// Fonction principale
+struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece board[8][8]) {
+    struct Deplacement deplacements[100];
+    int nombreDeplacements = 0;
+    deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
+
+    float score = calculer_score(board, couleur);
+    printf("score : %f\n", score);
+    printf("nb deplacemnt : %i\n", nombreDeplacements);
+    //afficheDeplacements(deplacements, nombreDeplacements);
+
+    if (nombreDeplacements == 0) {
+        return (struct Deplacement) { -5,-5,-5,-5 };
+    }
+
+
+    time_t Start;
+    
+
+    Start = time(NULL);
+
+    float score_rep = -9999;
+    int rep = 0;
+
+    // Tableau de threads
+    pthread_t threads[nombreDeplacements];
+    struct ThreadArgs threadArgs[nombreDeplacements];
+
+    // Créer un thread pour chaque déplacement possible
+    for (int i = 0; i < nombreDeplacements; i++) {
+        threadArgs[i].tours_restant = tours_restant - 1;
+        threadArgs[i].couleur = inverse(couleur);
+        threadArgs[i].IA_Couleur = couleur;
+        copy_board(board, threadArgs[i].board);
+        movePiece(deplacements[i], threadArgs[i].board, couleur);
+        pthread_create(&threads[i], NULL, threadFunc, (void*)&threadArgs[i]);
+    }
+
+
+
+
+    int duration;// Durée en secondes
+    if(tours_restant<2)
+    {
+        duration = 2;
+    }
+    else
+    {
+        duration = tours_restant; 
+    }
+    
+
+    /*
+    time_t End;
+    
+
+    End = time(NULL);
+    int a = 0;
+    while(End - Start < duration);
+    {
+        End = time(NULL);
+        for (size_t i = 0; i < 1000; i++)
+        {
+            a++;
+        }
+        for (size_t i = 0; i < 1000; i++)
+        {
+            a--;
+        }
+
+    }
+    */
+    sleep(duration);
+    // Attendre la fin de chaque thread et récupérer les résultats
+    /*
+    for (int i = 0; i < nombreDeplacements; i++) {
+        //pthread_join(threads[i], NULL);
+
+        // Récupérer le résultat à l'aide du pointeur
+        float s = threadArgs[i].result;
+        if (s > score_rep) {
+            score_rep = s;
+            rep = i;
+        }
+        sleep(duration);
+        current = time(NULL);
+        if (current - Start >= duration) {
+            // Si la durée écoulée dépasse la durée souhaitée, mettre fin aux threads restants
+            break;
+        }
+
+    }
+    */
+    for (int i = 0; i < nombreDeplacements; i++) {
+        float s = threadArgs[i].result;
+        if (s > score_rep) {
+            score_rep = s;
+            rep = i;
+        }
+    }
+    // Terminer les threads restants
+    for (int i = 0; i < nombreDeplacements; i++) {
+        if (!pthread_equal(threads[i], pthread_self())) {
+            pthread_cancel(threads[i]);
+        }
+    }
+
+  
+
+    //time_t Start;
+    time_t End;
+    Start = time(NULL);    
+    // Attendre la fin de chaque thread et récupérer les résultats
+    for (int i = 0; i < nombreDeplacements; i++) {
+        pthread_join(threads[i], NULL);
+    }
+    End = time(NULL);   
+    printf("Le temps por que sa s'arrète actuel est de : %ld\n", End - Start);
+    /* test */
+    //printf("déplavement efectuer %i %i %i %i",deplacements[rep].xArrivee,deplacements[rep].yArrivee,deplacements[rep].xDepart,deplacements[rep].yDepart);
+    movePiece(deplacements[rep], board, couleur);
+    return deplacements[rep];
+}
+/*
+
+void* threadFunc2(void* args) {
+    struct ThreadArgs2* threadArgs = (struct ThreadArgs2*)args;
+    threadArgs->result = main_minmax2(threadArgs->tours_restant, threadArgs->couleur, threadArgs->board);
+    return NULL;
+}
+
+struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece board[8][8]) {
+    struct ThreadArgs2 threadArgs;
+    threadArgs.tours_restant = tours_restant;
+    threadArgs.couleur = couleur;
+    copy_board(board, threadArgs.board);
+
+    pthread_t thread;
+    pthread_create(&thread, NULL, threadFunc2, (void*)&threadArgs);
+
+    // Attendre la fin du thread et récupérer le résultat
+    pthread_join(thread, NULL);
+    struct Deplacement rep =  threadArgs.result;
+
+
+    
+
+}
+*/
+/*
+
+struct Deplacement main_minmax_ancien(int tours_restant, int couleur, struct Piece board[8][8])
 {
 
     struct Deplacement deplacements[100];
@@ -2229,6 +2427,8 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
     {
         return (struct Deplacement){-5,-5,-5,-5};
     }
+
+
     
     float score_rep = -9999;  // score initialisé à une valeur très basse
     int rep = 0;              // index du déplacement sélectionné
@@ -2249,12 +2449,12 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
         }
     }
 
-    /* test*/
+
     movePiece(deplacements[rep], board, couleur);
     return deplacements[rep];
 }
 
-
+*/
 struct Deplacement conversionString(char* str, struct Piece board[8][8]) {
     struct Deplacement resultat;
     
@@ -2317,7 +2517,7 @@ struct Deplacement ouverture_bot(int argc, struct Deplacement argv[], int* nb_de
                 if (k >= *nb_deplacements) {
                     fclose(fp);
                     struct Deplacement dep = conversionString(&line[i],board);
-                    printf("mouvement %i %i %i %i\n",dep.xArrivee,dep.xDepart,dep.yArrivee,dep.yDepart);
+                    //printf("mouvement %i %i %i %i\n",dep.xArrivee,dep.xDepart,dep.yArrivee,dep.yDepart);
                     return dep;
                 }
             } else {
@@ -2352,19 +2552,11 @@ int transcription(int x){
 }
 
 
-void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_bot)
+void play(SDL_Window *window, int mode, int difficulty_bot)
 {
-    struct Piece board[8][8];
-    initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-    // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-
-    int nbDeplacements = 0;
-    struct Deplacement deplacements[100];
-    int couleur = BLANC;
-    struct Deplacement last_deplacements[100];
-    int last = 0;
-    int is_open = 0;
-    deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL)
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
 
     SDL_Surface* black_pion_surface = IMG_Load("pieces/black/black_pion.png");
     if (black_pion_surface == NULL)
@@ -2402,45 +2594,66 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_b
     SDL_Surface* white_king_surface = IMG_Load("pieces/white/white_king.png");
     if (white_king_surface == NULL)
         printf("Error loading image: %s\n", SDL_GetError());
+
+
+    struct Piece board[8][8];
+    initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+
+    int nbDeplacements = 0;
+    struct Deplacement deplacements[100];
+    int couleur = BLANC;
+    struct Deplacement last_deplacements[500];
+    int last = 0;
+    int is_open = 0;
+    deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
     
     SDL_Event e;
     display_menu(renderer);
     display_whoplay(renderer, couleur);
     draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-    SDL_RenderPresent(renderer);
     struct Deplacement move;
 
     //struct Piece list_dead_piece[100];
     //int nb_dead_piece = 0;
+    SDL_DestroyRenderer(renderer);
+
 
     move.xDepart = -1;
     move.xArrivee = -1;
     move.yDepart = -1;
     move.yArrivee = -1;
     int x, y;
-    while (true)
+    while (true){
         if(nbDeplacements == 0){
-                nbDeplacements = 1;
-                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                display_end_screen(renderer);
-                SDL_RenderPresent(renderer);
-                while (true)
-                if (SDL_PollEvent(&e) != 0)
-                    if (e.type == SDL_QUIT)
-                        return 0;
-                    else if (e.type == SDL_MOUSEBUTTONUP){
-                        SDL_GetMouseState(&x, &y);
-                        if(x>1120 && x<1370 && y<487 && y>400){
-                            play(window, renderer, mode, difficulty_bot);
-                            return;
-                        }
-                        else if(x>1120 && x<1370 && y<587 && y>500){
-                            fun_main(renderer, window);
-                            return;
-                        }
+            SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+            if (renderer == NULL)
+                printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
+            nbDeplacements = 1;
+            draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+            display_end_screen(renderer);
+            SDL_RenderPresent(renderer);
+            SDL_DestroyRenderer(renderer);
+            while (true)
+            if (SDL_PollEvent(&e) != 0)
+                if (e.type == SDL_QUIT)
+                    return 0;
+                else if (e.type == SDL_MOUSEBUTTONUP){
+                    SDL_GetMouseState(&x, &y);
+                    if(x>1120 && x<1370 && y<487 && y>400){
+                        play(window, mode, difficulty_bot);
+                        return;
                     }
+                    else if(x>1120 && x<1370 && y<587 && y>500){
+                        fun_main(window);
+                        return;
+                    }
+                }
             }
         else if(mode == 2 && couleur == NOIR){
+            SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+            if (renderer == NULL)
+                printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
             if(is_open == 0){
                 struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
                 if(dep.xArrivee == -5)
@@ -2466,8 +2679,12 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_b
                 SDL_RenderPresent(renderer);
                 deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
             }
+            SDL_DestroyRenderer(renderer);
         }
         else if(mode == 3){
+            SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+            if (renderer == NULL)
+                printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
             if(is_open == 0){
                 struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
                 if(dep.xArrivee == -5)
@@ -2511,9 +2728,13 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_b
                 nbDeplacements = 0;
                 deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
             }
+            SDL_DestroyRenderer(renderer);
         }
         else if (SDL_PollEvent(&e) != 0)
             if (e.type == SDL_MOUSEBUTTONUP){
+                SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+                if (renderer == NULL)
+                    printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
                 //dead_pieces(result, board, couleur, &i);
                 //display_dead_piece(result, board, renderer, couleur, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface,  black_cavalier_surface, black_rook_surface, black_king_surface, black_queen_surface);
                 SDL_GetMouseState(&x, &y);
@@ -2527,7 +2748,7 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_b
                             else if (e.type == SDL_MOUSEBUTTONUP){
                                 SDL_GetMouseState(&x, &y);
                                 if(x>500 && x<1000 && y<660 && y>500){
-                                    fun_main(renderer, window);
+                                    fun_main(window);
                                     return;
                                 }
                                 else if(x>1050 && x<1150 && y<270 && y>170){
@@ -2608,17 +2829,22 @@ void play(SDL_Window *window, SDL_Renderer *renderer, int mode, int difficulty_b
                         deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
                     }
                 }
+                SDL_DestroyRenderer(renderer);
         
             }
             else if(e.type == SDL_QUIT)
                 return;
+    }
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
 
-void fun_main(SDL_Renderer* renderer, SDL_Window* window){
+void fun_main(SDL_Window* window){
+    SDL_Renderer* renderer= SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (renderer == NULL)
+        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
     display_first_screen(renderer);
     SDL_RenderPresent(renderer);
     int x, y;
@@ -2630,12 +2856,14 @@ void fun_main(SDL_Renderer* renderer, SDL_Window* window){
             else if (e.type == SDL_MOUSEBUTTONUP){
                 SDL_GetMouseState(&x, &y);
                 if(x<1050 && x>450 && y<937 && y>750){
-                    play(window, renderer, 1, 0);
+                    SDL_DestroyRenderer(renderer);
+                    play(window, 1, 0);
                     break;
                 }
                 else if(x<1050 && x>450 && y<737 && y>550){
                     display_choose_difficulty(renderer);
                     SDL_RenderPresent(renderer);
+                    SDL_DestroyRenderer(renderer);
                     while (true)
                         if (SDL_PollEvent(&e) != 0)
                             if (e.type == SDL_QUIT)
@@ -2643,20 +2871,21 @@ void fun_main(SDL_Renderer* renderer, SDL_Window* window){
                             else if (e.type == SDL_MOUSEBUTTONUP){
                                 SDL_GetMouseState(&x, &y);
                                 if(x>500 && x<1000 && y<510 && y>350)
-                                    play(window, renderer, 2, 2);
+                                    play(window, 2, 2);
                                 else if(x>500 && x<1000 && y<710 && y>550)
-                                    play(window, renderer, 2, 3);
+                                    play(window, 2, 3);
                                 else if(x>500 && x<1000 && y<910 && y>750)
-                                    play(window, renderer, 2, 4);
+                                    play(window, 2, 4);
                                 else if(x>1050 && x<1150 && y<120 && y>20){
-                                    fun_main(renderer, window);
+                                    fun_main(window);
                                     break;
                                 }
                             }   
                     break;
                 }
                 else if(x<1050 && x>450 && y<537 && y>350){
-                    play(window, renderer, 3, 0);
+                    SDL_DestroyRenderer(renderer);
+                    play(window, 3, 0);
                     break;
                 }
             }
@@ -2665,7 +2894,102 @@ void fun_main(SDL_Renderer* renderer, SDL_Window* window){
     SDL_Quit();
 }
 
+
+void test()
+{
+    struct Piece board[8][8];
+    
+    time_t Start;
+    time_t End;
+    
+    initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b Qkq - 0 1");
+    Start = time(NULL);
+
+    //printf("Le temps actuel est : %ld\n", currentTime);
+
+
+    struct Deplacement a;
+    a = main_minmax(2,NOIR,board);
+    printf("déplavement efectuer %i %i %i %i\n",a.xDepart,a.yDepart,a.xArrivee,a.yArrivee);
+    End = time(NULL);
+    printf("Le temps actuel est : %ld\n", End - Start);
+    initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b Qkq - 0 1");
+    Start = time(NULL);
+    a = main_minmax(5,NOIR,board);
+    printf("déplavement efectuer %i %i %i %i",a.xDepart,a.yDepart,a.xArrivee,a.yArrivee);
+    End = time(NULL);
+    printf("Le temps actuel est : %ld\n", End - Start);
+    initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b Qkq - 0 1");
+    Start = time(NULL);
+    a = main_minmax(10,NOIR,board);
+    printf("déplavement efectuer %i %i %i %i",a.xDepart,a.yDepart,a.xArrivee,a.yArrivee);
+    End = time(NULL);
+    printf("Le temps actuel est : %ld\n", End - Start);
+}
+
+
+void test2()
+{
+    struct Piece board[8][8];
+    struct Piece board2[8][8];
+    initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b Qkq - 0 1");
+    time_t Start;
+    time_t End;
+    Start = time(NULL);
+    for (size_t i = 0; i < 10000000; i++)
+    {
+        copy_board(board,board2);
+    }
+    End = time(NULL);
+    printf("Le temps actuel est : %ld\n", End - Start);
+}
+
+void test3()
+{
+    struct Piece board[8][8];
+    struct Piece board2[8][8];
+    int nbDeplacements = 0;
+
+    initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b Qkq - 0 1");
+    time_t Start;
+    time_t End;
+    struct Deplacement deplacements[100];
+    Start = time(NULL);
+    
+    for (size_t i = 0; i < 10000000; i++)
+    {
+        deplacementsPossibles(NOIR, deplacements, &nbDeplacements, board);
+        nbDeplacements = 0;
+    }
+    End = time(NULL);
+    printf("Le temps actuel est : %ld\n", End - Start);
+}
+
+
+void test4()
+{
+    struct Piece board[8][8];
+    struct Piece board2[8][8];
+    int nbDeplacements = 0;
+
+    initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b Qkq - 0 1");
+    time_t Start;
+    time_t End;
+    struct Deplacement deplacements[100];
+    Start = time(NULL);
+    
+    for (size_t i = 0; i < 10000000; i++)
+    {
+        calculer_score(board,NOIR);
+    }
+    End = time(NULL);
+    printf("Le temps actuel est : %ld\n", End - Start);
+}
 int main() {
+    //test4();
+    //return 0;
+
+    
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
 
@@ -2673,10 +2997,7 @@ int main() {
     if (window == NULL)
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (renderer == NULL)
-        printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-    fun_main(renderer, window);
+    fun_main(window);
     
     return 0;
 }
