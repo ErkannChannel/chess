@@ -2748,6 +2748,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
                             else if (e.type == SDL_MOUSEBUTTONUP){
                                 SDL_GetMouseState(&x, &y);
                                 if(x>500 && x<1000 && y<660 && y>500){
+                                    SDL_DestroyRenderer(renderer);
                                     fun_main(window);
                                     return;
                                 }
@@ -2777,6 +2778,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
                         move.yDepart = piece_to_movex;
                         draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                         display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                        display_move(move.xDepart, move.yDepart, board, deplacements, nbDeplacements, renderer);
                         SDL_RenderPresent(renderer);
                     }
                     else if(board[move.xDepart][move.yDepart].type == ROI && (piece_to_movey == 7 && piece_to_movex == 6) || (piece_to_movey == 7 && piece_to_movex == 2) || (piece_to_movey == 0 && piece_to_movex == 6) || (piece_to_movey == 0 && piece_to_movex == 2)){

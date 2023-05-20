@@ -305,8 +305,7 @@ void display_move(int X, int Y, struct Piece board[8][8], struct Deplacement* de
       if (cross_surface == NULL)
           printf("Error loading image: %s\n", SDL_GetError());
       SDL_Texture* cross_texture = SDL_CreateTextureFromSurface(renderer, cross_surface);
-      SDL_Rect dst25 = { posX+37, posY+37
-      , 50, 50 };
+      SDL_Rect dst25 = { posX+37, posY+37, 50, 50 };
       SDL_RenderCopy(renderer, cross_texture, NULL, &dst25);
       SDL_DestroyTexture(cross_texture);
     }
@@ -493,13 +492,8 @@ void display_piece(SDL_Renderer* renderer, SDL_Surface* piece, int x, int y){
   SDL_RenderCopy(renderer, piece_texture, NULL, &dst);
   SDL_DestroyTexture(piece_texture);
 }
-/*
-void deloc_piece(int x, int y, SDL_Renderer* renderer, SDL_Surface* piece_surface){
-  int posX = x * TILE_SIZE;
-  int posY = y * TILE_SIZE;
-}
 
-*/
+
 void display_piece_to_play(enum PieceType piece, int couleur,SDL_Renderer* renderer, int x, int y, SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
   SDL_SetRenderDrawColor(renderer, 0xEE, 0xEE, 0x00, 0xFF);
   SDL_Rect dst = { x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE };
