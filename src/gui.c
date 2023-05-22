@@ -334,6 +334,7 @@ void display_move(int X, int Y, struct Piece board[8][8], struct Deplacement* de
       SDL_Rect dst25 = { posX+37, posY+37, 50, 50 };
       SDL_RenderCopy(renderer, cross_texture, NULL, &dst25);
       SDL_DestroyTexture(cross_texture);
+      SDL_FreeSurface(cross_surface);
     }
 }
 

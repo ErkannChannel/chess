@@ -3298,6 +3298,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                 }
                 draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                 nbDeplacements = 0;
+                display_piece_to_play(board[dep.xArrivee][dep.yArrivee].type, board[dep.xArrivee][dep.yArrivee].couleur, renderer, dep.yArrivee,dep.xArrivee,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                 couleur = BLANC;
                 display_whoplay(renderer, couleur);
                 float s = calculer_score_V2(board, BLANC);
@@ -3306,11 +3307,12 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                 deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
             }
             if(is_open == 1){
-                main_minmax(difficulty_bot,NOIR,board);
+                struct Deplacement dep = main_minmax(difficulty_bot,NOIR,board);
                 draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                 couleur = BLANC;
                 nbDeplacements = 0;
                 float s = calculer_score_V2(board, BLANC);
+                display_piece_to_play(board[dep.xArrivee][dep.yArrivee].type, board[dep.xArrivee][dep.yArrivee].couleur, renderer, dep.yArrivee,dep.xArrivee,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                 display_score(renderer, (int)s);
                 display_whoplay(renderer, couleur);
                 SDL_RenderPresent(renderer);
@@ -3456,7 +3458,11 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                     //display_dead_piece(result, board, renderer, couleur, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface,  black_cavalier_surface, black_rook_surface, black_king_surface, black_queen_surface);
                     int piece_to_movex = transcription(x);
                     int piece_to_movey = transcription(y);
-                    if(move.xDepart == -1 && board[piece_to_movey][piece_to_movex].type != PAS_DE_PIECE && board[piece_to_movey][piece_to_movex].couleur == couleur){
+                    if(piece_to_movex > 7){
+                        SDL_DestroyRenderer(renderer);
+                        continue;
+                    }
+                    else if(move.xDepart == -1 && board[piece_to_movey][piece_to_movex].type != PAS_DE_PIECE && board[piece_to_movey][piece_to_movex].couleur == couleur){
                         move.xDepart = piece_to_movey;
                         move.yDepart = piece_to_movex;
                         display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
@@ -3474,7 +3480,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                             display_move(move.xDepart, move.yDepart, board, deplacements, nbDeplacements, renderer);
                             SDL_RenderPresent(renderer);
                         }
-                        else if(board[move.xDepart][move.yDepart].type == ROI && (piece_to_movey == 7 && piece_to_movex == 6) || (piece_to_movey == 7 && piece_to_movex == 2) || (piece_to_movey == 0 && piece_to_movex == 6) || (piece_to_movey == 0 && piece_to_movex == 2)){
+                        else if((board[move.xDepart][move.yDepart].type == ROI) && ((piece_to_movey == 7 && piece_to_movex == 6) || (piece_to_movey == 7 && piece_to_movex == 2) || (piece_to_movey == 0 && piece_to_movex == 6) || (piece_to_movey == 0 && piece_to_movex == 2))){
                             if(piece_to_movex == 2)
                                 move.xDepart = -3;
                             else
