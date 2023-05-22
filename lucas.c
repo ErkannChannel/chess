@@ -16,7 +16,7 @@
 #define MAX_MOVES_HISTORY 50
 
 
-
+#define couleur(param) printf("\033[%sm", param)
 
 
 void afficheDeplacements(struct Deplacement* deplacements, int nbDeplacements) {
@@ -1922,6 +1922,51 @@ int* dead_pieces(struct Piece board[8][8], int couleur){
 
 
 
+void position_precedante(struct Piece board[8][8],struct Piece manger,struct Piece deplacer,struct Deplacement deplacement)
+{
+    if (deplacement.xDepart == -2 )
+    {
+        if (deplacer.couleur == NOIR)
+        {
+            board[0][4] = board[0][6];
+            board[0][7] = board[0][5];
+            mettre_la_case_a_vide(0,6,board);
+            mettre_la_case_a_vide(0,5,board);
+        }
+        else
+        {
+            board[7][4] = board[7][6];
+            board[7][7] = board[7][5];
+            mettre_la_case_a_vide(7,6,board);
+            mettre_la_case_a_vide(7,5,board);
+        }
+        
+    }
+    else if (deplacement.xDepart == -3)
+    {
+        if (deplacer.couleur == NOIR)
+        {
+            board[0][0] = board[0][3];
+            board[0][4] = board[0][2];
+            mettre_la_case_a_vide(0,2,board);
+            mettre_la_case_a_vide(0,3,board);
+        }
+        else
+        {
+            board[7][0] = board[7][3];
+            board[7][4] = board[7][2];
+            mettre_la_case_a_vide(7,2,board);
+            mettre_la_case_a_vide(7,3,board);
+        }
+    }
+    else
+    {
+        board[deplacement.xDepart][deplacement.yDepart] = deplacer;
+        board[deplacement.xArrivee][deplacement.yArrivee] = manger;
+    }
+    
+}
+
 
 
 // Structure pour les arguments du thread
@@ -1967,13 +2012,27 @@ void copy_board(struct Piece dest[8][8], struct Piece src[8][8]) {
 }
 
 
+float protege_par_pion(struct Piece board[8][8],int x, int y, int couleur)
+{
+
+    if (couleur == BLANC && (case_existe(x-1,y-1) && board[x-1][y-1].type == PION && board[x-1][y-1].couleur == BLANC || (case_existe(x-1,y+1) && board[x-1][y+1].type == PION && board[x-1][y+1].couleur == BLANC)) )
+    {
+        return 0.15;
+    }
+    if (couleur == NOIR && (case_existe(x+1,y-1) && board[x+1][y-1].type == PION && board[x+1][y-1].couleur == NOIR || (case_existe(x+1,y+1) && board[x+1][y+1].type == PION && board[x+1][y+1].couleur == NOIR)) )
+    {
+        return 0.15;
+    }
+    return 0;
+}
+
 float calculer_position_pion(struct Piece board[8][8],int x, int y, int couleur)
 {
     float score = 0.0;
 
 
     // rajoute des point ou pion qui est plus au centre
-    float tab[8] = { -0.05 , 0 , 0.05 , 0.1 , 0.1 , 0.05 , 0 , -0.05 };
+    float tab[8] = { -0.1 , 0 , 0.05 , 0.1 , 0.1 , 0.05 , 0 , -0.1 };
 
     score += tab[y];
 
@@ -1987,15 +2046,11 @@ float calculer_position_pion(struct Piece board[8][8],int x, int y, int couleur)
         if (x == centre[i][0] && y == centre[i][1]) 
         {
             //printf("pion au centre\n");
-            score += 0.2;
+            score += 0.15;
             break;
         }
     }
     
-
-
-
-
 
     // diminie les score si la pièce est doubler ou plus.
     for (size_t i = 0; i < 8; i++)
@@ -2021,7 +2076,7 @@ float calculer_position_cavalier(struct Piece board[8][8],int x, int y, int coul
 
     if (x == 0 || x == 7 || y == 0 || y ==7)
     {
-        score -= 0.5;
+        score -= 0.15;
     }
     return score;
 }
@@ -2046,7 +2101,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
         
         if (board[i][y].type == TOUR && board[i][y].couleur == couleur)
         {
-            score += 0.25;
+            score += 0.15;
         }
         break;
     }
@@ -2059,7 +2114,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
         
         if (board[i][y].type == TOUR && board[i][y].couleur == couleur)
         {
-            score += 0.25;
+            score += 0.15;
         }
         break;
     }
@@ -2072,7 +2127,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
         
         if (board[x][i].type == TOUR && board[x][i].couleur == couleur)
         {
-            score += 0.25;
+            score += 0.15;
         }
         break;
     }
@@ -2085,7 +2140,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
         
         if (board[x][i].type == TOUR && board[x][i].couleur == couleur)
         {
-            score += 0.25;
+            score += 0.15;
         }
         break;
     }
@@ -2122,12 +2177,12 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
         if (pion_enemie = 0)
         {
             //printf("colone ouverte\n");
-            score += 0.6;
+            score += 0.3;
         }
         else
         {
             //printf("colone semie-ouverte\n");
-            score += 0.3;
+            score += 0.15;
         }
         
     }
@@ -2135,9 +2190,9 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
     
     // la tour est dans la 7 ème ranger
 
-    if (x == 1 && couleur == NOIR || x == 7 && couleur == BLANC)
+    if (y == 1 && couleur == BLANC || y == 7 && couleur == NOIR)
     {
-        score += 1;
+        score += 0.35;
     }
     
     
@@ -2146,7 +2201,67 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
 }
 
 
+float calculer_position_fou(struct Piece board[8][8],int x, int y, int couleur)
+{
+    float score = 0.0;
 
+    if (x == 0 && y == 2 && couleur == NOIR)
+    {
+        if(board[1][1].couleur == NOIR && board[1][3].couleur == NOIR)
+            score -= 0.4;
+        else
+            score -= 0.2;
+    }
+    else if (x == 0 && y == 5 && couleur == NOIR)
+    {
+        if(board[1][4].couleur == NOIR && board[1][6].couleur == NOIR)
+            score -= 0.4;
+        else
+            score -= 0.2;
+    }
+
+    else if (x == 7 && y == 2 && couleur == BLANC)
+    {
+        if(board[6][1].couleur == BLANC && board[6][3].couleur == BLANC)
+            score -= 0.4;
+        else
+            score -= 0.2;
+    }
+    else if (x == 7 && y == 5 && couleur == BLANC)
+    {
+        if(board[6][4].couleur == BLANC && board[6][6].couleur == BLANC)
+            score -= 0.4;
+        else
+            score -= 0.2;
+    }
+
+    return score;
+}
+
+
+
+float calculer_position_roi(struct Piece board[8][8],int x, int y, int couleur)
+{
+    float score = 0.0;
+
+    if((x == 0 && y == 2 && couleur == NOIR && board[0][0].type != TOUR && board[0][1].type != TOUR) || (x == 0 && y == 6 && couleur == NOIR && board[0][7].type != TOUR && board[0][6].type != TOUR))
+    {
+        score += 0.4;
+    }
+    else if((x == 7 && y == 2 && couleur == BLANC && board[7][0].type != TOUR && board[7][1].type != TOUR) || (x == 7 && y == 6 && couleur == BLANC && board[7][7].type != TOUR && board[7][6].type != TOUR))
+    {
+        score += 0.4;
+    }
+    if ((x == 0 && y == 3 && couleur == NOIR &&  (board[0][0].type == TOUR || board[0][1].type == TOUR  || board[0][2].type == TOUR )) ||(x == 0 && y == 5 && couleur == NOIR &&  (board[0][6].type == TOUR || board[0][7].type == TOUR  )))
+    {
+        score -= 0.3;
+    }
+    if ((x == 7 && y == 3 && couleur == BLANC &&  (board[7][0].type == TOUR || board[7][1].type == TOUR  || board[7][2].type == TOUR )) ||(x == 7 && y == 5 && couleur == NOIR &&  (board[7][6].type == TOUR || board[7][7].type == TOUR  )))
+    {
+        score -= 0.3;
+    }
+    return score;
+}
 
 float calculer_score(struct Piece board[8][8], int joueur) {
     float score = 0.0;
@@ -2159,22 +2274,22 @@ float calculer_score(struct Piece board[8][8], int joueur) {
             float valeur = 0.0;
             switch (piece.type) {
                 case PION:
-                    valeur = 1.0 + 0.1 * calculer_position_pion(board,i, j,piece.couleur);
+                    valeur = 1.0 + calculer_position_pion(board,i,j,piece.couleur) +0.5 * protege_par_pion(board,i,j,piece.couleur);
                     break;
                 case CAVALIER:
-                    valeur = 3.0 + 0.1 * calculer_position_cavalier(board,i, j,piece.couleur);
+                    valeur = 3.0 +  calculer_position_cavalier(board,i,j,piece.couleur)+ protege_par_pion(board,i,j,piece.couleur);
                     break;
                 case FOU:
-                    valeur = 3.25;
+                    valeur = 3.25 + calculer_position_fou(board,i,j,piece.couleur)+ protege_par_pion(board,i,j,piece.couleur);
                     break;
                 case TOUR:
-                    valeur = 5.0 + 0.1 * calculer_position_tour(board,i, j,piece.couleur);
+                    valeur = 5.0 +  calculer_position_tour(board,i,j,piece.couleur);
                     break;
                 case DAME:
                     valeur = 9.0;
                     break;
                 case ROI:
-                    valeur = 100.0;
+                    valeur = 100.0 + calculer_position_roi(board,i,j,piece.couleur);
                     break;
             }
             if (piece.couleur == joueur) {
@@ -2189,8 +2304,47 @@ float calculer_score(struct Piece board[8][8], int joueur) {
 }
 
 
+float calculer_score_V2(struct Piece board[8][8], int joueur) {
+    float score = 0.0;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            struct Piece piece = board[i][j];
+            if (piece.type == PAS_DE_PIECE)
+                continue;
+            float valeur = 0.0;
+            switch (piece.type) {
+                case PION:
+                    valeur = 1.0;
+                    break;
+                case CAVALIER:
+                    valeur = 3.0;
+                    break;
+                case FOU:
+                    valeur = 3.0;
+                    break;
+                case TOUR:
+                    valeur = 5.0;
+                    break;
+                case DAME:
+                    valeur = 9.0;
+                    break;
+                case ROI:
+                    valeur = 100.0;
+                    break;
+            }
+            if (piece.couleur == joueur)
+                score += valeur;
+            else
+                score -= valeur;
+        }
+    }
+    //return score;
+    return (joueur == 1) ? score : -score;
+}
 
-float minmax(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8][8]) {
+
+
+float minmax_ancien(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8][8]) {
     pthread_testcancel();
     if (tours_restant <= 0) {
         float s = calculer_score(board, couleur);
@@ -2216,36 +2370,394 @@ float minmax(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8
     for (int i = 0; i < nombreDeplacements; i++) {
         struct Piece board2[8][8];
         copy_board(board, board2); // copier le tableau board dans board2
+        //struct Piece manger = board[deplacements[i].xArrivee][deplacements[i].yArrivee];
+        //struct Piece deplacer = board[deplacements[i].xDepart][deplacements[i].yDepart];
         movePiece(deplacements[i], board2, couleur);
-        float bonus_roque =0.0;
-        if (deplacements[i].xDepart ==-2 || deplacements[i].xDepart == -3)
-        {
-            bonus_roque = 1.0;
-        }
+
         
-        float score_children = minmax(tours_restant - 1, inverse(couleur),IA_Couleur, board2) - bonus_roque;
-        
+        float score_children = minmax_ancien(tours_restant - 1, inverse(couleur),IA_Couleur, board2);
+        //position_precedante(board,manger,deplacer,deplacements[i]);
         score = (couleur == IA_Couleur) ? fmax2(score, score_children) : fmin2(score, score_children); // utiliser la fonction max ou min en fonction de la couleur du joueur
     }
 
     return score;
 }
+/*
+float alphabeta(int tours_restants, int PROFONDEUR_ATTENTE, int couleur, int IA_Couleur, struct Piece board[8][8], float alpha, float beta) {
+    pthread_testcancel();
+    if (tours_restants <= 0) {
+        float s = calculer_score(board, couleur);
+        if (IA_Couleur == NOIR)
+            s = -s;
+        return s;
+    }
+    
+    struct Deplacement deplacements[100];
+    int nombreDeplacements = 0;
+    deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
+    
+    if (nombreDeplacements == 0) {
+        return (couleur == IA_Couleur) ? -9999 : 9999;
+    }
+    
+    struct Piece manger;
+    struct Piece deplacer;
+    
+    if (tours_restants <= PROFONDEUR_ATTENTE) {
+        // Ne pas effectuer d'élagage Alpha-Bêta si la profondeur est inférieure à PROFONDEUR_ATTENTE
+        for (int i = 0; i < nombreDeplacements; i++) {
+            manger = board[deplacements[i].xArrivee][deplacements[i].yArrivee];
+            deplacer = board[deplacements[i].xDepart][deplacements[i].yDepart];
+            if (deplacements[i].xDepart < 0) {
+                deplacer.couleur = couleur;
+            }
+            
+            movePiece(deplacements[i], board, couleur);
 
+            
+            float score_children = alphabeta(tours_restants - 1,PROFONDEUR_ATTENTE, inverse(couleur), IA_Couleur, board, -beta, -alpha);
+            //position_precedente(board, manger, deplacer, deplacements[i]);
+            position_precedante(board,manger,deplacer,deplacements[i]);
+            //int score;
+            //score = (couleur != IA_Couleur) ? fmax2(score, score_children) : fmin2(score, score_children);
+            if (score_children >= beta) {
+                return beta;
+            }
+            
+            if (score_children > alpha) {
+                alpha = score_children;
+            }
+        }
+        
+        return alpha;
+    } else {
+        // Effectuer l'élagage Alpha-Bêta pour les profondeurs plus profondes
+        for (int i = 0; i < nombreDeplacements; i++) {
+            manger = board[deplacements[i].xArrivee][deplacements[i].yArrivee];
+            deplacer = board[deplacements[i].xDepart][deplacements[i].yDepart];
+            if (deplacements[i].xDepart < 0) {
+                deplacer.couleur = couleur;
+            }
+            
+            movePiece(deplacements[i], board, couleur);
+            float bonus_roque = 0.0;
+            if (deplacements[i].xDepart == -2 || deplacements[i].xDepart == -3) {
+                bonus_roque = 1.0;
+            }
+            
+            float score_children = alphabeta(tours_restants - 1,PROFONDEUR_ATTENTE, inverse(couleur), IA_Couleur, board, -beta, -alpha);
+            position_precedante(board, manger, deplacer, deplacements[i]);
+    
+        
+            if (score_children >= beta) {
+                return beta;
+            }
+        
+            if (score_children > alpha) {
+                alpha = score_children;
+            }
+    }
+    
+    return alpha;
+    }
+}
+*/
+
+
+float alphabeta(int tours_restants, int PROFONDEUR_ATTENTE, int couleur, int IA_Couleur, struct Piece board[8][8], float alpha, float beta) {
+    pthread_testcancel();
+    if (tours_restants <= 0) {
+        float s = calculer_score(board, couleur);
+        if (IA_Couleur == NOIR)
+            s = -s;
+        return s;
+    }
+    
+    struct Deplacement deplacements[100];
+    int nombreDeplacements = 0;
+    deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
+    
+    if (nombreDeplacements == 0) {
+        return (couleur == IA_Couleur) ? -9999 : 9999;
+    }
+    
+    struct Piece manger;
+    struct Piece deplacer;
+    
+    if (tours_restants <= PROFONDEUR_ATTENTE) {
+        // Ne pas effectuer d'élagage Alpha-Bêta si la profondeur est inférieure à PROFONDEUR_ATTENTE
+        for (int i = 0; i < nombreDeplacements; i++) {
+            manger = board[deplacements[i].xArrivee][deplacements[i].yArrivee];
+            deplacer = board[deplacements[i].xDepart][deplacements[i].yDepart];
+            if (deplacements[i].xDepart < 0) {
+                deplacer.couleur = couleur;
+            }
+            
+            movePiece(deplacements[i], board, couleur);
+
+            float score_children;
+            
+            if (couleur == IA_Couleur) {
+                score_children = alphabeta(tours_restants - 1, PROFONDEUR_ATTENTE, inverse(couleur), IA_Couleur, board, alpha, beta);
+                if (score_children >= beta) {
+                    position_precedante(board,manger,deplacer,deplacements[i]);
+                    return beta;
+                }
+                if (score_children > alpha) {
+                    alpha = score_children;
+                }
+            } else {
+                score_children = alphabeta(tours_restants - 1, PROFONDEUR_ATTENTE, inverse(couleur), IA_Couleur, board, alpha, beta);
+                if (score_children <= alpha) {
+                    position_precedante(board,manger,deplacer,deplacements[i]);
+                    return alpha;
+                }
+                if (score_children < beta) {
+                    beta = score_children;
+                }
+            }
+            
+            position_precedante(board,manger,deplacer,deplacements[i]);
+        }
+        
+        if (couleur == IA_Couleur) {
+            return alpha;
+        } else {
+            return beta;
+        }
+    } else {
+        // Effectuer l'élagage Alpha-Bêta pour les profondeurs plus profondes
+        for (int i = 0; i < nombreDeplacements; i++) {
+            manger = board[deplacements[i].xArrivee][deplacements[i].yArrivee];
+            deplacer = board[deplacements[i].xDepart][deplacements[i].yDepart];
+            if (deplacements[i].xDepart < 0) {
+                deplacer.couleur = couleur;
+            }
+            
+            movePiece(deplacements[i], board, couleur);
+            
+            float score_children;
+            
+            if (couleur == IA_Couleur) {
+                float bonus_roque = 0.0;
+                if (deplacements[i].xDepart == -2 || deplacements[i].xDepart == -3) {
+                    bonus_roque = 1.0;
+                }
+                
+                score_children = alphabeta(tours_restants - 1, PROFONDEUR_ATTENTE, inverse(couleur), IA_Couleur, board, alpha, beta) - bonus_roque;
+                
+                if (score_children >= beta) {
+                    position_precedante(board,manger,deplacer,deplacements[i]);
+                    return beta;
+                }
+                if (score_children > alpha) {
+                    alpha = score_children;
+                }
+            } else {
+                score_children = alphabeta(tours_restants - 1, PROFONDEUR_ATTENTE, inverse(couleur), IA_Couleur, board, alpha, beta);
+                
+                if (score_children <= alpha) {
+                    position_precedante(board,manger,deplacer,deplacements[i]);
+                    return alpha;
+                }
+                if (score_children < beta) {
+                    beta = score_children;
+                }
+            }
+            
+            position_precedante(board,manger,deplacer,deplacements[i]);
+        }
+        
+        if (couleur == IA_Couleur) {
+            return alpha;
+        } else {
+            return beta;
+        }
+    }
+}
+
+
+
+
+
+
+/*
+float alphabeta(int tours_restants, int couleur, int IA_Couleur, struct Piece board[8][8], float alpha, float beta) {
+    pthread_testcancel();
+    if (tours_restants <= 0) {
+        float s = calculer_score(board, couleur);
+        if (IA_Couleur == NOIR)
+            s = -s;
+        return s;
+    }
+    
+    struct Deplacement deplacements[100];
+    int nombreDeplacements = 0;
+    deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
+    
+    if (nombreDeplacements == 0) {
+        return (couleur == IA_Couleur) ? -9999 : 9999;
+    }
+    
+    struct Piece manger;
+    struct Piece deplacer;
+    
+    for (int i = 0; i < nombreDeplacements; i++) {
+        manger = board[deplacements[i].xArrivee][deplacements[i].yArrivee];
+        deplacer = board[deplacements[i].xDepart][deplacements[i].yDepart];
+        if (deplacements[i].xDepart < 0) {
+            deplacer.couleur = couleur;
+        }
+        
+        movePiece(deplacements[i], board, couleur);
+
+        
+        float score_children = alphabeta(tours_restants - 1, inverse(couleur), IA_Couleur, board, -beta, -alpha);
+        position_precedante(board, manger, deplacer, deplacements[i]);
+        
+        if (score_children >= beta) {
+            return beta;
+        }
+        
+        if (score_children > alpha) {
+            alpha = score_children;
+        }
+    }
+    
+    return alpha;
+}
+*/
+float minmax(int tours_restants,int PROFONDEUR_ATTENTE, int couleur, int IA_Couleur, struct Piece board[8][8]) {
+    return alphabeta(tours_restants,PROFONDEUR_ATTENTE, couleur, IA_Couleur, board, -9999, 9999);
+}
+
+
+
+
+
+
+
+
+
+float minmax2(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8][8]) {
+    pthread_testcancel();
+    if (tours_restant <= 0) {
+        float s = calculer_score(board, couleur);
+        //affichePlateau(board);
+        //printf("les score est: %f\n",s);
+        //affichePlateau(board);
+        //printf("les score est: %f\n",s);
+        if(IA_Couleur == NOIR)
+            s = s*(-1);
+        return s;
+    }
+    
+    struct Deplacement deplacements[100];
+    int nombreDeplacements =0 ;
+    deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
+    //printf("le nombre de deplacement %i\n",nombreDeplacements);
+    //afficheDeplacements( deplacements, nombreDeplacements, board);
+    if (nombreDeplacements == 0) {
+        return (couleur == IA_Couleur) ? -9999 : 9999; // si le joueur ne peut pas bouger, retourner un score très bas (pour le joueur blanc) ou très haut (pour le joueur noir)
+    }
+    struct Piece manger;
+    struct Piece deplacer;
+    float score = (couleur == IA_Couleur) ? -9999 : 9999; // initialiser score à un score très bas (pour le joueur blanc) ou très haut (pour le joueur noir)
+    for (int i = 0; i < nombreDeplacements; i++) {
+        //struct Piece board2[8][8];
+        //copy_board(board, board2); // copier le tableau board dans board2
+
+
+        manger = board[deplacements[i].xArrivee][deplacements[i].yArrivee];
+        deplacer = board[deplacements[i].xDepart][deplacements[i].yDepart];
+        if (deplacements[i].xDepart < 0)
+        {
+            deplacer.couleur = couleur;
+        }
+        
+        
+        movePiece(deplacements[i], board, couleur);
+        /*
+        float bonus_roque =0.0;
+        if (deplacements[i].xDepart ==-2 || deplacements[i].xDepart == -3)
+        {
+            bonus_roque = 1.0;
+        }
+        */
+        float score_children = minmax2(tours_restant - 1, inverse(couleur),IA_Couleur, board) ;
+        position_precedante(board, manger, deplacer, deplacements[i]);
+        score = (couleur == IA_Couleur) ? fmax2(score, score_children) : fmin2(score, score_children); // utiliser la fonction max ou min en fonction de la couleur du joueur
+    }
+
+    return score;
+}
+/*
+void minmax_intermediaire(int tours_restant, int couleur, int IA_Couleur, struct Piece board[8][8], float* rep) {
+    struct Piece board2[8][8];
+    copy_board(board, board2);
+    *rep = minmax(1, 2, couleur, IA_Couleur, board2);
+    
+    for (int i = 3; i < 100; i += 2) {
+        copy_board(board, board2);
+        *rep = minmax(tours_restant, i, couleur, IA_Couleur, board2);
+        pthread_testcancel();
+
+        if (i >= 5) {
+            printf("Profondeur : %i\n", i);
+        }
+    }
+}
+
+*/
+
+void minmax_intermediaire(int temps,int couleur, int IA_Couleur, struct Piece board[8][8], float* rep) {
+    struct Piece board2[8][8];
+    copy_board(board, board2);
+    *rep = minmax(1, 2, couleur, IA_Couleur, board2);
+    
+    for (size_t i = 1; i < 100; i += 2) {
+        copy_board(board, board2);
+        
+        if (i > 4) {
+            *rep = minmax(i, i - 2, couleur, IA_Couleur, board2);
+        } else {
+            *rep = minmax(i, 3, couleur, IA_Couleur, board2);
+        }
+        
+        pthread_testcancel();
+        
+        if (i >= 5) {
+            printf("Profondeur : %i\n", i);
+        }
+    }
+}
+
+/*
 void minmax_intermediaire(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8][8],float* rep) {
     struct Piece board2[8][8];
     copy_board(board, board2);
-    *rep =  minmax(1,couleur,IA_Couleur,board2);
-    for (size_t i = 2; i < 100; i+=2)
+    *rep =  minmax(1,2,couleur,IA_Couleur,board2);
+    for (size_t i = 1; i < 100; i+=2)
     {
         copy_board(board, board2);
-        *rep =  minmax(i,couleur,IA_Couleur,board2);
+        if(i > 4)
+        {
+            *rep =  minmax(i,i-2,couleur,IA_Couleur,board2);
+        }
+        else
+        {
+            *rep =  minmax(i,3,couleur,IA_Couleur,board2);
+        }
+        
         pthread_testcancel();
-        //printf("profondeure de : %i\n",i);
-    }
-    
-    
-}
+        if (i >= 5)
+        {
+            printf("profondeure de : %i\n",i);
+        }
 
+    }
+}
+*/
 // Fonction exécutée par le thread
 void* threadFunc(void* args) {
     struct ThreadArgs* threadArgs = (struct ThreadArgs*)args;
@@ -2264,7 +2776,7 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
     float score = calculer_score(board, couleur);
     printf("score : %f\n", score);
     printf("nb deplacemnt : %i\n", nombreDeplacements);
-    //afficheDeplacements(deplacements, nombreDeplacements);
+    afficheDeplacements(deplacements, nombreDeplacements);
 
     if (nombreDeplacements == 0) {
         return (struct Deplacement) { -5,-5,-5,-5 };
@@ -2517,7 +3029,7 @@ struct Deplacement ouverture_bot(int argc, struct Deplacement argv[], int* nb_de
                 if (k >= *nb_deplacements) {
                     fclose(fp);
                     struct Deplacement dep = conversionString(&line[i],board);
-                    //printf("mouvement %i %i %i %i\n",dep.xArrivee,dep.xDepart,dep.yArrivee,dep.yDepart);
+                    printf("mouvement %i %i %i %i\n",dep.xArrivee,dep.xDepart,dep.yArrivee,dep.yDepart);
                     return dep;
                 }
             } else {
@@ -2552,7 +3064,7 @@ int transcription(int x){
 }
 
 
-void play(SDL_Window *window, int mode, int difficulty_bot)
+void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
 {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
@@ -2597,7 +3109,6 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
 
 
     struct Piece board[8][8];
-    initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     // rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 
     int nbDeplacements = 0;
@@ -2606,31 +3117,42 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
     struct Deplacement last_deplacements[500];
     int last = 0;
     int is_open = 0;
-    deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
     
     SDL_Event e;
     display_menu(renderer);
-    display_whoplay(renderer, couleur);
-    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+    if(mode != 4){
+        initialiserPlateau(board, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        deplacementsPossibles(couleur,deplacements, &nbDeplacements, board);
+        display_whoplay(renderer, couleur);
+        draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+    }
+    else{
+        initialiserPlateau(board, "8/8/8/8/8/8/8/8 w - - 0 1");
+        draw_board_fourth(renderer);
+        play_but(renderer);
+        piece_fourth(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+        
+    }
     struct Deplacement move;
 
     //struct Piece list_dead_piece[100];
     //int nb_dead_piece = 0;
+    SDL_RenderPresent(renderer);
     SDL_DestroyRenderer(renderer);
 
-
+    struct Piece piece;
     move.xDepart = -1;
     move.xArrivee = -1;
     move.yDepart = -1;
     move.yArrivee = -1;
     int x, y;
     while (true){
-        if(nbDeplacements == 0){
+        if(nbDeplacements == 0 && mode != 4){
             SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
             if (renderer == NULL)
                 printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
             nbDeplacements = 1;
-            draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+            draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
             display_end_screen(renderer);
             SDL_RenderPresent(renderer);
             SDL_DestroyRenderer(renderer);
@@ -2641,11 +3163,11 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
                 else if (e.type == SDL_MOUSEBUTTONUP){
                     SDL_GetMouseState(&x, &y);
                     if(x>1120 && x<1370 && y<487 && y>400){
-                        play(window, mode, difficulty_bot);
+                        play(window, mode, difficulty_bot, theme);
                         return;
                     }
                     else if(x>1120 && x<1370 && y<587 && y>500){
-                        fun_main(window);
+                        fun_main(window, theme);
                         return;
                     }
                 }
@@ -2663,18 +3185,22 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
                     last_deplacements[last] = dep;
                     last++;
                 }
-                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                 nbDeplacements = 0;
                 couleur = BLANC;
                 display_whoplay(renderer, couleur);
+                float s = calculer_score_V2(board, BLANC);
+                display_score(renderer, (int)s);
                 SDL_RenderPresent(renderer);
                 deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
             }
             if(is_open == 1){
                 main_minmax(difficulty_bot,NOIR,board);
-                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                 couleur = BLANC;
                 nbDeplacements = 0;
+                float s = calculer_score_V2(board, BLANC);
+                display_score(renderer, (int)s);
                 display_whoplay(renderer, couleur);
                 SDL_RenderPresent(renderer);
                 deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
@@ -2694,7 +3220,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
                     last_deplacements[last] = dep;
                     last++;
                 }
-                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                 couleur = BLANC;
                 display_whoplay(renderer, couleur);
                 SDL_RenderPresent(renderer);
@@ -2718,7 +3244,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
                     }
                 }
                     
-                draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                 if (couleur == BLANC)
                     couleur = NOIR;
                 else
@@ -2735,8 +3261,6 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
                 SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
                 if (renderer == NULL)
                     printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
-                //dead_pieces(result, board, couleur, &i);
-                //display_dead_piece(result, board, renderer, couleur, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface,  black_cavalier_surface, black_rook_surface, black_king_surface, black_queen_surface);
                 SDL_GetMouseState(&x, &y);
                 if(x>1430 && x<1480 && y<70 && y>20){
                     display_left_game(renderer);
@@ -2749,89 +3273,150 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
                                 SDL_GetMouseState(&x, &y);
                                 if(x>500 && x<1000 && y<660 && y>500){
                                     SDL_DestroyRenderer(renderer);
-                                    fun_main(window);
+                                    fun_main(window, theme);
                                     return;
                                 }
                                 else if(x>1050 && x<1150 && y<270 && y>170){
                                     display_menu(renderer);
-                                    display_whoplay(renderer, couleur);
-                                    draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                    if(mode != 4)
+                                        display_whoplay(renderer, couleur);
+                                    else
+                                        piece_fourth(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                    draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                                     SDL_RenderPresent(renderer);
                                     break;
                                 }
                             }
+                    SDL_DestroyRenderer(renderer);
                 }
-                int piece_to_movex = transcription(x);
-                int piece_to_movey = transcription(y);
-                if(move.xDepart == -1 && board[piece_to_movey][piece_to_movex].type != PAS_DE_PIECE && board[piece_to_movey][piece_to_movex].couleur == couleur){
-                    move.xDepart = piece_to_movey;
-                    move.yDepart = piece_to_movex;
-                    display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                    display_move(move.xDepart, move.yDepart, board, deplacements, nbDeplacements, renderer);
-                    SDL_RenderPresent(renderer);
+                else if(mode == 4){
+                    if(x>1100 && x<1400 && y>890 && y<960){
+                        mode = 2;
+                        nbDeplacements = 0;
+                        display_menu(renderer);
+                        display_whoplay(renderer, BLANC);
+                        deplacementsPossibles(BLANC, deplacements, &nbDeplacements, board);
+                        SDL_DestroyRenderer(renderer);
+                    }
+                    else{
+                        int piece_to_movex = transcription(x);
+                        int piece_to_movey = transcription(y);
+                        if(piece_to_movex >=8 && piece_to_movex<=9 && piece_to_movey >=1 && piece_to_movey<=6){
+                            move.xDepart = piece_to_movex;
+                            if(piece_to_movex == 8)
+                                piece.couleur = NOIR;
+                            else if (piece_to_movex == 9)
+                                piece.couleur = BLANC;
+                            if(piece_to_movey == 1)
+                                piece.type = PION;
+                            else if(piece_to_movey == 2)
+                                piece.type = CAVALIER;
+                            else if(piece_to_movey == 3)
+                                piece.type = FOU;
+                            else if(piece_to_movey == 4)
+                                piece.type = TOUR;
+                            else if(piece_to_movey == 5)
+                                piece.type = DAME;
+                            else if(piece_to_movey == 6)
+                                piece.type = ROI;
+                            display_menu(renderer);
+                            piece_fourth(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                            display_piece_to_play(piece.type, piece.couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                            draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                            play_but(renderer);
+                        }
+                        else{
+                            if(piece_to_movex >=0 && piece_to_movex<=7 && piece_to_movey >=0 && piece_to_movey<=7){
+                                board[piece_to_movey][piece_to_movex] = piece;
+                                move.xDepart = -1;
+                                display_menu(renderer);
+                                piece_fourth(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                display_piece_to_play(piece.type, piece.couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                play_but(renderer);
+                            }
+                        }
+                        SDL_RenderPresent(renderer);
+                        SDL_DestroyRenderer(renderer);
+                    }
                 }
                 else{
-                    move.xArrivee = piece_to_movey;
-                    move.yArrivee = piece_to_movex;
-                    if(board[piece_to_movey][piece_to_movex].couleur == couleur){
+                    //dead_pieces(result, board, couleur, &i);
+                    //display_dead_piece(result, board, renderer, couleur, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface,  black_cavalier_surface, black_rook_surface, black_king_surface, black_queen_surface);
+                    int piece_to_movex = transcription(x);
+                    int piece_to_movey = transcription(y);
+                    if(move.xDepart == -1 && board[piece_to_movey][piece_to_movex].type != PAS_DE_PIECE && board[piece_to_movey][piece_to_movex].couleur == couleur){
                         move.xDepart = piece_to_movey;
                         move.yDepart = piece_to_movex;
-                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                         display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                         display_move(move.xDepart, move.yDepart, board, deplacements, nbDeplacements, renderer);
                         SDL_RenderPresent(renderer);
                     }
-                    else if(board[move.xDepart][move.yDepart].type == ROI && (piece_to_movey == 7 && piece_to_movex == 6) || (piece_to_movey == 7 && piece_to_movex == 2) || (piece_to_movey == 0 && piece_to_movex == 6) || (piece_to_movey == 0 && piece_to_movex == 2)){
-                        if(piece_to_movex == 2)
-                            move.xDepart = -3;
-                        else
-                            move.xDepart = -2;
-                        if(estPresent(move, deplacements, nbDeplacements)){
-                            movePiece(move, board, couleur);
-                            draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                    else{
+                        move.xArrivee = piece_to_movey;
+                        move.yArrivee = piece_to_movex;
+                        if(board[piece_to_movey][piece_to_movex].couleur == couleur){
+                            move.xDepart = piece_to_movey;
+                            move.yDepart = piece_to_movex;
+                            draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                            display_move(move.xDepart, move.yDepart, board, deplacements, nbDeplacements, renderer);
+                            SDL_RenderPresent(renderer);
+                        }
+                        else if(board[move.xDepart][move.yDepart].type == ROI && (piece_to_movey == 7 && piece_to_movex == 6) || (piece_to_movey == 7 && piece_to_movex == 2) || (piece_to_movey == 0 && piece_to_movex == 6) || (piece_to_movey == 0 && piece_to_movex == 2)){
+                            if(piece_to_movex == 2)
+                                move.xDepart = -3;
+                            else
+                                move.xDepart = -2;
+                            if(estPresent(move, deplacements, nbDeplacements)){
+                                movePiece(move, board, couleur);
+                                draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                SDL_RenderPresent(renderer);
+                                move.xDepart = -1;
+                                move.yDepart = -1;
+                                if (couleur == NOIR)
+                                    couleur = BLANC;
+                                else
+                                    couleur = NOIR;
+                                nbDeplacements = 0;
+                                deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
+                            }
+                            else{
+                                draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                SDL_RenderPresent(renderer);
+                                move.xDepart = -1;
+                                move.yDepart = -1;
+                            }
+                        }
+                        else if(!estPresent(move, deplacements, nbDeplacements)){
+                            draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             SDL_RenderPresent(renderer);
                             move.xDepart = -1;
                             move.yDepart = -1;
+                        }
+                        else{
+                            last_deplacements[last] = move;
+                            last++;
+                            movePiece(move, board, couleur);
+                            draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                            display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             if (couleur == NOIR)
                                 couleur = BLANC;
                             else
                                 couleur = NOIR;
+                            display_whoplay(renderer, couleur);
+                            move.xDepart = -1;
+                            move.yDepart = -1;
+                            float s = calculer_score_V2(board, BLANC);
+                            display_score(renderer, (int)s);
+                            SDL_RenderPresent(renderer);
                             nbDeplacements = 0;
                             deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
                         }
-                        else{
-                            draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                            SDL_RenderPresent(renderer);
-                            move.xDepart = -1;
-                            move.yDepart = -1;
-                        }
                     }
-                    else if(!estPresent(move, deplacements, nbDeplacements)){
-                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        SDL_RenderPresent(renderer);
-                        move.xDepart = -1;
-                        move.yDepart = -1;
-                    }
-                    else{
-                        last_deplacements[last] = move;
-                        last++;
-                        movePiece(move, board, couleur);
-                        draw_board(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        if (couleur == NOIR)
-                            couleur = BLANC;
-                        else
-                            couleur = NOIR;
-                        display_whoplay(renderer, couleur);
-                        move.xDepart = -1;
-                        move.yDepart = -1;
-                        SDL_RenderPresent(renderer);
-                        nbDeplacements = 0;
-                        deplacementsPossibles(couleur, deplacements, &nbDeplacements, board);
-                    }
+                    SDL_DestroyRenderer(renderer);
                 }
-                SDL_DestroyRenderer(renderer);
         
             }
             else if(e.type == SDL_QUIT)
@@ -2843,7 +3428,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot)
 }
 
 
-void fun_main(SDL_Window* window){
+void fun_main(SDL_Window* window, int theme){
     SDL_Renderer* renderer= SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     if (renderer == NULL)
         printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
@@ -2859,7 +3444,7 @@ void fun_main(SDL_Window* window){
                 SDL_GetMouseState(&x, &y);
                 if(x<1050 && x>450 && y<937 && y>750){
                     SDL_DestroyRenderer(renderer);
-                    play(window, 1, 0);
+                    play(window, 1, 0, theme);
                     break;
                 }
                 else if(x<1050 && x>450 && y<737 && y>550){
@@ -2873,13 +3458,13 @@ void fun_main(SDL_Window* window){
                             else if (e.type == SDL_MOUSEBUTTONUP){
                                 SDL_GetMouseState(&x, &y);
                                 if(x>500 && x<1000 && y<510 && y>350)
-                                    play(window, 2, 2);
+                                    play(window, 2, 2, theme);
                                 else if(x>500 && x<1000 && y<710 && y>550)
-                                    play(window, 2, 3);
+                                    play(window, 2, 3, theme);
                                 else if(x>500 && x<1000 && y<910 && y>750)
-                                    play(window, 2, 4);
+                                    play(window, 2, 4, theme);
                                 else if(x>1050 && x<1150 && y<120 && y>20){
-                                    fun_main(window);
+                                    fun_main(window, theme);
                                     break;
                                 }
                             }   
@@ -2887,14 +3472,47 @@ void fun_main(SDL_Window* window){
                 }
                 else if(x<1050 && x>450 && y<537 && y>350){
                     SDL_DestroyRenderer(renderer);
-                    play(window, 3, 0);
+                    play(window, 3, 0, theme);
                     break;
+                }
+                else if(x<400 && x>200 && y<950 && y>750){
+                    SDL_DestroyRenderer(renderer);
+                    play(window, 4, 0, theme);
+                    break;
+                }
+                else if(x>1430 && x<1480 && y<70 && y>20){
+                    display_theme(renderer);
+                    SDL_RenderPresent(renderer);
+                    while (true)
+                        if (SDL_PollEvent(&e) != 0)
+                            if (e.type == SDL_QUIT)
+                                return 0;
+                            else if (e.type == SDL_MOUSEBUTTONUP){
+                                SDL_GetMouseState(&x, &y);
+                                if(x>500 && x<1000 && y<660 && y>500){
+                                    SDL_DestroyRenderer(renderer);
+                                    fun_main(window, theme);
+                                    return;
+                                }
+                                if(x>500 && x<740 && y<800 && y>700){
+                                    SDL_DestroyRenderer(renderer);
+                                    fun_main(window, 0);
+                                    return;
+                                }
+                                if(x>760 && x<1000 && y<800 && y>700){
+                                    SDL_DestroyRenderer(renderer);
+                                    fun_main(window, 1);
+                                    return;
+                                }
+                            }
+                    SDL_DestroyRenderer(renderer);
                 }
             }
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
+
 
 
 void test()
@@ -2987,6 +3605,69 @@ void test4()
     End = time(NULL);
     printf("Le temps actuel est : %ld\n", End - Start);
 }
+
+
+void test_IA_Fen(char fen[],struct Deplacement rep,int temps)
+{
+    struct Piece board[8][8];
+    initialiserPlateau(board, fen);
+    struct Deplacement a;
+    a = main_minmax(temps,NOIR,board);
+
+    if (a.xArrivee == rep.xArrivee && a.yArrivee == rep.yArrivee && a.xDepart == rep.xDepart && a.yDepart == rep.yDepart)
+    {
+        couleur("1;32"); // Texte en vert
+        
+        printf("correct\n");
+    }
+    else
+    {
+        couleur("1;31"); // Texte en rouge
+        printf("erreur\n");
+    }
+    couleur("0");
+
+}
+
+
+
+void test_IA()
+{
+    char fen1[100] = "rnb1kbnr/pppp1ppp/2q5/8/8/8/PPPPKPPP/RNBQ1BNR b kq - 0 1";
+    struct Deplacement D1 = {2,2,4,4};
+    test_IA_Fen(fen1,D1,5);
+}
+
+
+
+
+void test10()
+{
+    struct Piece board[8][8];
+    
+    time_t Start;
+    time_t End;
+    
+    initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b - - 0 1");
+    struct Deplacement a;
+    Start = time(NULL);
+
+    //printf("Le temps actuel est : %ld\n", currentTime);
+
+
+    minmax_ancien(5,NOIR,BLANC, board);
+    //printf("déplavement efectuer %i %i %i %i\n",a.xDepart,a.yDepart,a.xArrivee,a.yArrivee);
+    End = time(NULL);
+    printf("Le temps actuel est : %ld\n", End - Start);
+    initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b - - 0 1");
+    Start = time(NULL);
+    minmax2(5,NOIR,BLANC, board);
+    //printf("déplavement efectuer %i %i %i %i",a.xDepart,a.yDepart,a.xArrivee,a.yArrivee);
+    End = time(NULL);
+    printf("Le temps actuel est : %ld\n", End - Start);
+
+}
+
 int main() {
     //test4();
     //return 0;
@@ -2999,7 +3680,7 @@ int main() {
     if (window == NULL)
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
 
-    fun_main(window);
+    fun_main(window, 0);
     
     return 0;
 }

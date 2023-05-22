@@ -12,23 +12,16 @@ void display_first_screen(SDL_Renderer* renderer){
   SDL_Rect dst = {0, 0, 1500, 980};
   SDL_RenderFillRect(renderer, &dst);
   SDL_SetRenderDrawColor(renderer, 0x80, 0xa4, 0x64, 0xFF);
-
-  /*
-  SDL_Surface* logo_surface = IMG_Load("pieces/logo.png");
-      if (logo_surface == NULL)
-          printf("Error loading image: %s\n", SDL_GetError());
-  SDL_Texture* piece_texture = SDL_CreateTextureFromSurface(renderer, logo_surface);
-  SDL_Rect dst25 = { -20, -10, 150, 150 };
-  SDL_RenderCopy(renderer, piece_texture, NULL, &dst25);
-  SDL_DestroyTexture(piece_texture);
-  */
-
   SDL_Rect tfp1 = {450, 750, 600, 187};
   SDL_RenderFillRect(renderer, &tfp1);
   SDL_Rect tfp2 = {450, 550, 600, 187};
   SDL_RenderFillRect(renderer, &tfp2);
   SDL_Rect tfp3 = {450, 350, 600, 187};
   SDL_RenderFillRect(renderer, &tfp3);
+
+  SDL_SetRenderDrawColor(renderer, 0xeb, 0x61, 0x50, 0xFF);
+  SDL_Rect tfp0 = {200, 750, 200, 200};
+  SDL_RenderFillRect(renderer, &tfp0);
   // Initialize TTF library
   if (TTF_Init() == -1)
       printf("Error initializing TTF: %s\n", TTF_GetError());
@@ -42,10 +35,14 @@ void display_first_screen(SDL_Renderer* renderer){
   char text3[] = "    IA VS IA    ";
   char text2[] = "  Joueur VS IA  ";
   char text1[] = "Joueur VS Joueur";
+  char text0[] = " Bac à Sable";
   char text4[] = "     CHESS      ";
   SDL_Color color;
   color = (SDL_Color){238, 238, 210};
 
+  SDL_Surface *surface0 = TTF_RenderText_Solid(font, text0, color);
+  if (!surface0)
+      printf("Error rendering text: %s\n", TTF_GetError());
   SDL_Surface *surface1 = TTF_RenderText_Solid(font, text1, color);
   if (!surface1)
       printf("Error rendering text: %s\n", TTF_GetError());
@@ -60,6 +57,9 @@ void display_first_screen(SDL_Renderer* renderer){
       printf("Error rendering text: %s\n", TTF_GetError());
 
   // Convert surface to texture
+  SDL_Texture *texture0 = SDL_CreateTextureFromSurface(renderer, surface0);
+  if (!texture0)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
   SDL_Texture *texture1 = SDL_CreateTextureFromSurface(renderer, surface1);
   if (!texture1)
       printf("Error creating texture from surface: %s\n", SDL_GetError());
@@ -78,13 +78,25 @@ void display_first_screen(SDL_Renderer* renderer){
   SDL_Rect dest1 = {475, 800, 550, 90};
   SDL_Rect dest2 = {475, 600, 550, 90};
   SDL_Rect dest3 = {475, 400, 550, 90};
+  SDL_Rect dest0 = {200, 810, 200, 45};
   SDL_Rect dest4 = {270, 100, 1000, 200};
 
   // Render the text
+  SDL_RenderCopy(renderer, texture0, NULL, &dest0);
   SDL_RenderCopy(renderer, texture1, NULL, &dest1);
   SDL_RenderCopy(renderer, texture2, NULL, &dest2);
   SDL_RenderCopy(renderer, texture3, NULL, &dest3);
   SDL_RenderCopy(renderer, texture4, NULL, &dest4);
+
+  SDL_FreeSurface(surface1);
+  SDL_FreeSurface(surface2);
+  SDL_FreeSurface(surface3);
+  SDL_FreeSurface(surface4);
+
+  SDL_DestroyTexture(texture1);
+  SDL_DestroyTexture(texture2);
+  SDL_DestroyTexture(texture3);
+  SDL_DestroyTexture(texture4);
 
   // Clean up
   TTF_CloseFont(font);
@@ -208,6 +220,12 @@ void player(SDL_Renderer* renderer){
   SDL_RenderCopy(renderer, texture1, NULL, &dest1);
   SDL_RenderCopy(renderer, texture2, NULL, &dest2);
 
+  SDL_FreeSurface(surface1);
+  SDL_FreeSurface(surface2);
+
+  SDL_DestroyTexture(texture1);
+  SDL_DestroyTexture(texture2);
+
   // Clean up
   TTF_CloseFont(font);
   TTF_Quit();
@@ -288,6 +306,14 @@ void display_end_screen(SDL_Renderer* renderer){
   SDL_RenderCopy(renderer, texture1, NULL, &dest1);
   SDL_RenderCopy(renderer, texture2, NULL, &dest2);
   SDL_RenderCopy(renderer, texture3, NULL, &dest3);
+
+  SDL_FreeSurface(surface1);
+  SDL_FreeSurface(surface2);
+  SDL_FreeSurface(surface3);
+
+  SDL_DestroyTexture(texture1);
+  SDL_DestroyTexture(texture2);
+  SDL_DestroyTexture(texture3);
 
   // Clean up
   TTF_CloseFont(font);
@@ -374,6 +400,9 @@ void display_left_game(SDL_Renderer* renderer){
   SDL_RenderCopy(renderer, texture1, NULL, &dest1);
   SDL_RenderCopy(renderer, texture2, NULL, &dest2);
 
+  SDL_DestroyTexture(texture1);
+  SDL_DestroyTexture(texture2);
+
   // Clean up
   TTF_CloseFont(font);
   TTF_Quit();
@@ -459,6 +488,16 @@ void display_choose_difficulty(SDL_Renderer* renderer){
   SDL_RenderCopy(renderer, texture2, NULL, &dest2);
   SDL_RenderCopy(renderer, texture3, NULL, &dest3);
   SDL_RenderCopy(renderer, texture4, NULL, &dest4);
+
+  SDL_FreeSurface(surface1);
+  SDL_FreeSurface(surface2);
+  SDL_FreeSurface(surface3);
+  SDL_FreeSurface(surface4);
+
+  SDL_DestroyTexture(texture1);
+  SDL_DestroyTexture(texture2);
+  SDL_DestroyTexture(texture3);
+  SDL_DestroyTexture(texture4);
 
   // Clean up
   TTF_CloseFont(font);
@@ -582,13 +621,19 @@ void display_ttf(SDL_Renderer* renderer, int x, int y){
   }
 }
 
-void draw_board(SDL_Renderer* renderer, struct Piece board[8][8], SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
+void draw_board(int theme, SDL_Renderer* renderer, struct Piece board[8][8], SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
   for (int x = 0; x < BOARD_SIZE; x++)
     for (int y = 0; y < BOARD_SIZE; y++){
-      if ((x + y) % 2 == 0)
-        SDL_SetRenderDrawColor(renderer, 0xEE, 0xEE, 0xD2, 0xFF);
+      if(theme == 0)
+        if ((x + y) % 2 == 0)
+          SDL_SetRenderDrawColor(renderer, 0xEE, 0xEE, 0xD2, 0xFF);
+        else
+          SDL_SetRenderDrawColor(renderer, 0x76, 0x96, 0x56, 0xFF);
       else
-        SDL_SetRenderDrawColor(renderer, 0x76, 0x96, 0x56, 0xFF);
+        if ((x + y) % 2 == 0)
+          SDL_SetRenderDrawColor(renderer, 0xff, 0xff, 0xff, 0xFF);
+        else
+          SDL_SetRenderDrawColor(renderer, 0x4b, 0x73, 0x99, 0x00);
       display_ttf(renderer, x, y);
       SDL_Rect rect = { y * TILE_SIZE, x * TILE_SIZE, TILE_SIZE, TILE_SIZE };
       SDL_RenderFillRect(renderer, &rect);
@@ -623,4 +668,203 @@ void draw_board(SDL_Renderer* renderer, struct Piece board[8][8], SDL_Surface* w
         else
           continue;
 	}
+}
+
+
+void draw_board_fourth(SDL_Renderer* renderer){
+  for (int x = 0; x < BOARD_SIZE; x++)
+    for (int y = 0; y < BOARD_SIZE; y++){
+      if ((x + y) % 2 == 0)
+        SDL_SetRenderDrawColor(renderer, 0xEE, 0xEE, 0xD2, 0xFF);
+      else
+        SDL_SetRenderDrawColor(renderer, 0x76, 0x96, 0x56, 0xFF);
+      display_ttf(renderer, x, y);
+      SDL_Rect rect = { y * TILE_SIZE, x * TILE_SIZE, TILE_SIZE, TILE_SIZE };
+      SDL_RenderFillRect(renderer, &rect);
+    }
+}
+
+
+void piece_fourth(SDL_Renderer* renderer, struct Piece board[8][8], SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
+  
+  int y = 8;
+  display_piece(renderer, black_pion_surface, y, 1);
+  display_piece(renderer, black_cavalier_surface, y, 2);
+  display_piece(renderer, black_fou_surface, y, 3);
+  display_piece(renderer, black_rook_surface, y, 4);
+  display_piece(renderer, black_queen_surface, y, 5);
+  display_piece(renderer, black_king_surface, y, 6);
+  y = 9;
+  display_piece(renderer, white_pion_surface, y, 1);
+  display_piece(renderer, white_cavalier_surface, y, 2);
+  display_piece(renderer, white_fou_surface, y, 3);
+  display_piece(renderer, white_rook_surface, y, 4);
+  display_piece(renderer, white_queen_surface, y, 5);
+  display_piece(renderer, white_king_surface, y, 6);
+}
+
+
+void play_but(SDL_Renderer* renderer){
+  SDL_SetRenderDrawColor(renderer, 0x80, 0xa4, 0x64, 0xFF);
+  SDL_Rect tfp1 = {1100, 890, 300, 70};
+  SDL_RenderFillRect(renderer, &tfp1);
+
+    // Initialize TTF library
+  if (TTF_Init() == -1)
+      printf("Error initializing TTF: %s\n", TTF_GetError());
+
+  // Load font
+  TTF_Font *font = TTF_OpenFont("fonts/arial.ttf", 10);
+  if (!font)
+      printf("Error loading font: %s\n", TTF_GetError());
+
+  // Render text to surface
+  char text0[] = "     Load     ";
+
+  SDL_Color color;
+  color = (SDL_Color){238, 238, 210};
+
+  SDL_Surface *surface0 = TTF_RenderText_Solid(font, text0, color);
+  if (!surface0)
+      printf("Error rendering text: %s\n", TTF_GetError());
+
+  // Convert surface to texture
+  SDL_Texture *texture0 = SDL_CreateTextureFromSurface(renderer, surface0);
+  if (!texture0)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
+
+
+  // Set destination rectangle for the text
+  SDL_Rect dest0 = {1100, 900, 300, 50};
+
+  // Render the text
+  SDL_RenderCopy(renderer, texture0, NULL, &dest0);
+
+  SDL_FreeSurface(surface0);
+
+  SDL_DestroyTexture(texture0);
+
+  // Clean up
+  TTF_CloseFont(font);
+  TTF_Quit();
+}
+
+
+
+void display_score(SDL_Renderer* renderer, int score){
+  SDL_SetRenderDrawColor(renderer, 0x27, 0x24, 0x22, 0xFF);
+  SDL_Rect tfp1 = {1020, 820, 30 ,20};
+  SDL_Rect tfp2 = {1020, 130, 30 ,20};
+  SDL_RenderFillRect(renderer, &tfp1);
+  SDL_RenderFillRect(renderer, &tfp2);
+
+  // Initialize TTF library
+  if (TTF_Init() == -1)
+      printf("Error initializing TTF: %s\n", TTF_GetError());
+
+
+  // Load font
+  TTF_Font *font = TTF_OpenFont("fonts/arial.ttf", 20);
+  if (!font)
+      printf("Error loading font: %s\n", TTF_GetError());
+
+  // Render text to surface
+  char text[10];
+
+  SDL_Color color;
+  color = (SDL_Color){238, 238, 210};
+  sprintf(text, "+%d", abs(score));
+
+  SDL_Surface *surface = TTF_RenderText_Solid(font, text, color);
+  if (!surface)
+      printf("Error rendering text: %s\n", TTF_GetError());
+
+  // Convert surface to texture
+  SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+  if (!texture)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
+
+  // Set destination rectangle for the text
+  SDL_Rect dest;
+  if(score >= 0)
+  {
+    dest.x = 1020;
+    dest.y = 820;
+  }
+  else
+  {
+    dest.x = 1020;
+    dest.y = 130;
+  }
+  dest.w = 30;
+  dest.h = 20;
+  // Render the text
+  SDL_RenderCopy(renderer, texture, NULL, &dest);
+
+  // Clean up
+  TTF_CloseFont(font);
+  TTF_Quit();
+}
+void display_theme(SDL_Renderer* renderer){
+  SDL_SetRenderDrawColor(renderer, 0x31, 0x2E, 0x2B, 0xFF);
+  SDL_Rect tfpW = {450, 250, 600, 600};
+  SDL_RenderFillRect(renderer, &tfpW);
+
+  SDL_SetRenderDrawColor(renderer, 0x80, 0xa4, 0x64, 0xFF);
+  SDL_Rect tfp1 = {500, 500, 500, 160};
+  SDL_RenderFillRect(renderer, &tfp1);
+  SDL_Rect tfp2 = {500, 700, 240, 100};
+  SDL_RenderFillRect(renderer, &tfp2);
+  SDL_SetRenderDrawColor(renderer, 0x4b, 0x73, 0x99, 0x00);
+  SDL_Rect tfp3 = {760, 700, 240, 100};
+  SDL_RenderFillRect(renderer, &tfp3);
+
+  // Initialize TTF library
+  if (TTF_Init() == -1)
+      printf("Error initializing TTF: %s\n", TTF_GetError());
+
+  // Load font
+  TTF_Font *font = TTF_OpenFont("fonts/arial.ttf", 10);
+  if (!font)
+      printf("Error loading font: %s\n", TTF_GetError());
+
+  // Render text to surface
+  char text1[] = "    Choose Theme    ";
+  char text2[] = "        Back        ";
+  
+  SDL_Color color;
+  color = (SDL_Color){238, 238, 210};
+
+  SDL_Surface *surface1 = TTF_RenderText_Solid(font, text1, color);
+  if (!surface1)
+      printf("Error rendering text: %s\n", TTF_GetError());
+  SDL_Surface *surface2 = TTF_RenderText_Solid(font, text2, color);
+  if (!surface2)
+      printf("Error rendering text: %s\n", TTF_GetError());
+
+
+  // Convert surface to texture
+  SDL_Texture *texture1 = SDL_CreateTextureFromSurface(renderer, surface1);
+  if (!texture1)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
+  SDL_Texture *texture2 = SDL_CreateTextureFromSurface(renderer, surface2);
+  if (!texture2)
+      printf("Error creating texture from surface: %s\n", SDL_GetError());
+
+
+  // Set destination rectangle for the text
+  SDL_Rect dest1 = {475, 350-20, 550, 90};
+  SDL_Rect dest2 = {475, 550-20, 550, 90};
+
+
+  // Render the text
+  SDL_RenderCopy(renderer, texture1, NULL, &dest1);
+  SDL_RenderCopy(renderer, texture2, NULL, &dest2);
+
+  SDL_DestroyTexture(texture1);
+  SDL_DestroyTexture(texture2);
+
+  // Clean up
+  TTF_CloseFont(font);
+  TTF_Quit();
 }
