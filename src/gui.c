@@ -4,6 +4,8 @@
 #include "../include/struct.h"
 #include <SDL2/SDL_ttf.h>
 
+
+
 #define BOARD_SIZE 8
 #define TILE_SIZE 123
 
@@ -37,8 +39,7 @@ void display_first_screen(SDL_Renderer* renderer){
   char text1[] = "Joueur VS Joueur";
   char text0[] = " Bac à Sable";
   char text4[] = "     CHESS      ";
-  SDL_Color color;
-  color = (SDL_Color){238, 238, 210};
+  SDL_Color color = (SDL_Color){238, 238, 210, 255};
 
   SDL_Surface *surface0 = TTF_RenderText_Solid(font, text0, color);
   if (!surface0)
@@ -103,82 +104,6 @@ void display_first_screen(SDL_Renderer* renderer){
   TTF_Quit();
 }
 
-/*
-void display_dead_piece(struct Piece result[], struct Piece board[8][8], SDL_Renderer* renderer, int color, SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
-  for(int i = 0; i<25; i++){
-    if(result[i].type == CAVALIER)
-      display_piece(renderer, black_pion_surface, 7, 9);
-    else if(result[i].type == FOU)
-      display_piece(renderer, black_cavalier_surface, 7, 9);
-    else if(result[i].type == TOUR)
-      display_piece(renderer, black_fou_surface,7, 9);
-    else if(result[i].type == DAME)
-      display_piece(renderer, black_rook_surface, 7, 9);
-  }
-}
-*/
-
-void timer(SDL_Window* window,  SDL_Renderer* renderer){
-  SDL_Event event;
-  int running = 1;
-  SDL_Color textColor = {255, 255, 255, 0};
-
-  TTF_Font* font = TTF_OpenFont("fonts/arial.ttf", 24);
-    if(font == NULL) {
-        printf("Font could not be loaded! SDL_Error: %s\n", SDL_GetError());
-        return 1;
-    }
-
-  // Create a surface and texture for the text
-  SDL_Surface* textSurface = NULL;
-  SDL_Texture* textTexture = NULL;
-  char text[20] = "";
-
-  // Initialize timer variables
-  Uint32 startTime = 0;
-  Uint32 currentTime = 0;
-  Uint32 elapsedTime = 0;
-  int seconds = 0;
-
-  startTime = SDL_GetTicks();
-
-  while(running) {
-      while(SDL_PollEvent(&event))
-          if(event.type == SDL_QUIT)
-              running = 0;
-
-      // Calculate elapsed time
-      currentTime = SDL_GetTicks();
-      elapsedTime = currentTime - startTime;
-      seconds = elapsedTime / 1000;
-
-      // Render the text to the surface
-      sprintf(text, "Seconds: %d", seconds);
-      textSurface = TTF_RenderText_Solid(font, text, textColor);
-
-      // Create a texture from the surface
-      textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-
-      // Clear the renderer
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-      SDL_RenderClear(renderer);
-
-      // Render the texture to the screen
-      SDL_Rect textRect = {0, 0, textSurface->w, textSurface->h};
-      SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-
-      // Update the screen
-      SDL_RenderPresent(renderer);
-
-      // Free the surface and texture
-      SDL_FreeSurface(textSurface);
-      SDL_DestroyTexture(textTexture);
-  }
-
-  // Free the font
-  TTF_CloseFont(font);
-}
-
 
 void player(SDL_Renderer* renderer){
   // Initialize TTF library
@@ -194,7 +119,7 @@ void player(SDL_Renderer* renderer){
   char text1[] = "    PLayer 1    ";
   char text2[] = "    Player 2    ";
   SDL_Color color;
-  color = (SDL_Color){10,10,10};
+  color = (SDL_Color){10,10,10,255};
 
   SDL_Surface *surface1 = TTF_RenderText_Solid(font, text1, color);
   if (!surface1)
@@ -274,7 +199,7 @@ void display_end_screen(SDL_Renderer* renderer){
   char text2[] = "      Retry     ";
   char text3[] = "    Back Menu   ";
   SDL_Color color;
-  color = (SDL_Color){238, 238, 210};
+  color = (SDL_Color){238, 238, 210, 255};
 
   SDL_Surface *surface1 = TTF_RenderText_Solid(font, text1, color);
   if (!surface1)
@@ -321,7 +246,7 @@ void display_end_screen(SDL_Renderer* renderer){
 }
 
 
-void display_move(int X, int Y, struct Piece board[8][8], struct Deplacement* deplacements, int nbDeplacements, SDL_Renderer* renderer){
+void display_move(int X, int Y, struct Deplacement* deplacements, int nbDeplacements, SDL_Renderer* renderer){
   SDL_SetRenderDrawColor(renderer, 0x31, 0x2E, 0x2B, 0xFF);
   for (int i = 0; i < nbDeplacements; i++)
       if(deplacements[i].xDepart == X && deplacements[i].yDepart == Y){
@@ -373,7 +298,7 @@ void display_left_game(SDL_Renderer* renderer){
   char text2[] = "      Quit Game     ";
   
   SDL_Color color;
-  color = (SDL_Color){238, 238, 210};
+  color = (SDL_Color){238, 238, 210,255};
 
   SDL_Surface *surface1 = TTF_RenderText_Solid(font, text1, color);
   if (!surface1)
@@ -449,7 +374,7 @@ void display_choose_difficulty(SDL_Renderer* renderer){
   char text4[] = "        Hard        ";
   
   SDL_Color color;
-  color = (SDL_Color){238, 238, 210};
+  color = (SDL_Color){238, 238, 210,255};
 
   SDL_Surface *surface1 = TTF_RenderText_Solid(font, text1, color);
   if (!surface1)
@@ -552,7 +477,7 @@ void display_piece_to_play(enum PieceType piece, int couleur,SDL_Renderer* rende
     else if(piece == ROI)
       display_piece(renderer, black_king_surface, x, y);
     else
-      printf("");
+      return;
   else
     if(piece == PION)
       display_piece(renderer, white_pion_surface, x, y);
@@ -567,7 +492,7 @@ void display_piece_to_play(enum PieceType piece, int couleur,SDL_Renderer* rende
     else if(piece == ROI)
       display_piece(renderer, white_king_surface, x, y);
     else
-      printf("");
+      return;
 }
 
 
@@ -589,16 +514,16 @@ void display_ttf(SDL_Renderer* renderer, int x, int y){
     SDL_Color color;
     if(y == 0){
       if(x%2 == 1)
-        color = (SDL_Color){238, 238, 210};
+        color = (SDL_Color){238, 238, 210,255};
       else
-        color = (SDL_Color){118, 150, 86};
+        color = (SDL_Color){118, 150, 86,255};
       sprintf(text, "%d", x+1);
     }
     else{
       if(y%2 == 1)
-        color = (SDL_Color){238, 238, 210};
+        color = (SDL_Color){238, 238, 210,255};
       else
-        color = (SDL_Color){118, 150, 86};
+        color = (SDL_Color){118, 150, 86,255};
       sprintf(text, "%d", y+1);
     }
 
@@ -686,7 +611,7 @@ void draw_board_fourth(SDL_Renderer* renderer){
 }
 
 
-void piece_fourth(SDL_Renderer* renderer, struct Piece board[8][8], SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
+void piece_fourth(SDL_Renderer* renderer,SDL_Surface* white_pion_surface,SDL_Surface* white_cavalier_surface,SDL_Surface* white_fou_surface,SDL_Surface* white_rook_surface,SDL_Surface* white_king_surface,SDL_Surface* white_queen_surface,SDL_Surface* black_pion_surface,SDL_Surface* black_fou_surface, SDL_Surface* black_cavalier_surface,SDL_Surface* black_rook_surface,SDL_Surface* black_king_surface, SDL_Surface* black_queen_surface){
   
   int y = 8;
   display_piece(renderer, black_pion_surface, y, 1);
@@ -723,7 +648,7 @@ void play_but(SDL_Renderer* renderer){
   char text0[] = "     Load     ";
 
   SDL_Color color;
-  color = (SDL_Color){238, 238, 210};
+  color = (SDL_Color){238, 238, 210,255};
 
   SDL_Surface *surface0 = TTF_RenderText_Solid(font, text0, color);
   if (!surface0)
@@ -773,7 +698,7 @@ void display_score(SDL_Renderer* renderer, int score){
   char text[10];
 
   SDL_Color color;
-  color = (SDL_Color){238, 238, 210};
+  color = (SDL_Color){238, 238, 210,255};
   sprintf(text, "+%d", abs(score));
 
   SDL_Surface *surface = TTF_RenderText_Solid(font, text, color);
@@ -834,7 +759,7 @@ void display_theme(SDL_Renderer* renderer){
   char text2[] = "        Back        ";
   
   SDL_Color color;
-  color = (SDL_Color){238, 238, 210};
+  color = (SDL_Color){238, 238, 210,255};
 
   SDL_Surface *surface1 = TTF_RenderText_Solid(font, text1, color);
   if (!surface1)
@@ -869,3 +794,4 @@ void display_theme(SDL_Renderer* renderer){
   TTF_CloseFont(font);
   TTF_Quit();
 }
+

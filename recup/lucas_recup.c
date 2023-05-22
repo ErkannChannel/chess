@@ -10,11 +10,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <unistd.h>
 
 #define MAX_LINE_LENGTH 1024
 #define MAX_MOVES_PER_LINE 256
 #define MAX_MOVES_HISTORY 50
+
+
+#define couleur(param) printf("\033[%sm", param)
 
 
 void afficheDeplacements(struct Deplacement* deplacements, int nbDeplacements) {
@@ -1066,19 +1068,6 @@ void ajouterDeplacementFou(int x, int y, int xRoi, int yRoi, struct Deplacement 
 
 }
 
-int trouverRoi(int couleur, struct Piece board[8][8])
-{
-    for (int x = 0 ; x<8 ; x++ )
-        for (int y = 0 ; y<8 ; y++ )
-            if (board[x][y].type == ROI && board[x][y].couleur == couleur)
-                return x*10+y;
-    return -1;
-    //affichePlateau(board);
-    //sleep(100);
-    //perror("trouverRoi");
-}
-
-
 
 void ajouterDeplacementRoi(int x, int y, struct Deplacement deplacements[], int* nombreDeplacements, struct Piece board[8][8]) {
     // Vérification des 8 cases adjacentes au roi
@@ -1230,6 +1219,20 @@ void ajouterDeplacementDame(int x, int y, int xRoi, int yRoi, struct Deplacement
 
 
 
+int trouverRoi(int couleur, struct Piece board[8][8])
+{
+    for (int x = 0 ; x<8 ; x++ )
+        for (int y = 0 ; y<8 ; y++ )
+            if (board[x][y].type == ROI && board[x][y].couleur == couleur)
+                return x*10+y;
+    //affichePlateau(board);
+    //sleep(100);
+    perror("trouverRoi");
+
+}
+
+
+
 void __interception(int i, int j,int x, int y, int xRoi, int yRoi,struct Deplacement deplacements[], int* nombreDeplacements, struct Piece board[8][8] )
 {
     //printf("test __interception1 %d %d %d %d %d %d\n",i,j,x,y,xRoi,yRoi);
@@ -1255,6 +1258,9 @@ void interception(int x,int y,int xRoi, int yRoi,struct Deplacement deplacements
     //printf("test6 %d %d\n",x,y);
     int i;
     int j;
+    int posX; 
+    int posY;
+
 
 
     if (board[x][y].type != PAS_DE_PIECE)
@@ -2011,11 +2017,11 @@ void copy_board(struct Piece dest[8][8], struct Piece src[8][8]) {
 float protege_par_pion(struct Piece board[8][8],int x, int y, int couleur)
 {
 
-    if (couleur == BLANC && ((case_existe(x-1,y-1) && board[x-1][y-1].type == PION && board[x-1][y-1].couleur == BLANC) || (case_existe(x-1,y+1) && board[x-1][y+1].type == PION && board[x-1][y+1].couleur == BLANC)) )
+    if (couleur == BLANC && (case_existe(x-1,y-1) && board[x-1][y-1].type == PION && board[x-1][y-1].couleur == BLANC || (case_existe(x-1,y+1) && board[x-1][y+1].type == PION && board[x-1][y+1].couleur == BLANC)) )
     {
         return 0.15;
     }
-    if (couleur == NOIR && ((case_existe(x+1,y-1) && board[x+1][y-1].type == PION && board[x+1][y-1].couleur == NOIR) || (case_existe(x+1,y+1) && board[x+1][y+1].type == PION && board[x+1][y+1].couleur == NOIR)) )
+    if (couleur == NOIR && (case_existe(x+1,y-1) && board[x+1][y-1].type == PION && board[x+1][y-1].couleur == NOIR || (case_existe(x+1,y+1) && board[x+1][y+1].type == PION && board[x+1][y+1].couleur == NOIR)) )
     {
         return 0.15;
     }
@@ -2049,7 +2055,7 @@ float calculer_position_pion(struct Piece board[8][8],int x, int y, int couleur)
     
 
     // diminie les score si la pièce est doubler ou plus.
-    for (int i = 0; i < 8; i++)
+    for (size_t i = 0; i < 8; i++)
     {
         if (i != x && board[i][y].type == PION && board[i][y].couleur == couleur)
         {
@@ -2064,7 +2070,7 @@ float calculer_position_pion(struct Piece board[8][8],int x, int y, int couleur)
     if (couleur == BLANC)
     {
         for (int i = x - 1; i >= 0; i--) {
-            if(board[i][y].type != PAS_DE_PIECE && (board[i][y].couleur != couleur || (board[i][y].couleur == couleur && board[i][y].type == PION)))
+            if(board[i][y].type != PAS_DE_PIECE && (board[i][y].couleur != couleur || board[i][y].couleur == couleur && board[i][y].type == PION))
             {
                 return score;
             }
@@ -2091,7 +2097,7 @@ float calculer_position_pion(struct Piece board[8][8],int x, int y, int couleur)
     else
     {
         for (int i = x + 1; i >= 0; i++) {
-            if(board[i][y].type != PAS_DE_PIECE && (board[i][y].couleur != couleur || (board[i][y].couleur == couleur && board[i][y].type == PION)))
+            if(board[i][y].type != PAS_DE_PIECE && (board[i][y].couleur != couleur || board[i][y].couleur == couleur && board[i][y].type == PION))
             {
                 return score;
             }
@@ -2167,7 +2173,7 @@ float calculer_position_pion(struct Piece board[8][8],int x, int y, int couleur)
 }
 
 
-float calculer_position_cavalier(int x, int y)
+float calculer_position_cavalier(struct Piece board[8][8],int x, int y, int couleur)
 {
     float score = 0.0;
 
@@ -2202,7 +2208,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
         }
         break;
     }
-    for (int i = x-1; i >= 0; i--)
+    for (size_t i = x-1; i >= 0; i--)
     {
         if (board[i][y].type == PAS_DE_PIECE)
         {
@@ -2215,7 +2221,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
         }
         break;
     }
-    for (int i = y+1; i < 8; i++)
+    for (size_t i = y+1; i < 8; i++)
     {
         if (board[x][i].type == PAS_DE_PIECE)
         {
@@ -2228,7 +2234,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
         }
         break;
     }
-    for (int i = y-1; i >= 0; i--)
+    for (size_t i = y-1; i >= 0; i--)
     {
         if (board[x][i].type == PAS_DE_PIECE)
         {
@@ -2271,7 +2277,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
     }
     if (pion_amie == 0)
     {
-        if (pion_enemie == 0)
+        if (pion_enemie = 0)
         {
             //printf("colone ouverte\n");
             score += 0.3;
@@ -2287,7 +2293,7 @@ float calculer_position_tour(struct Piece board[8][8],int x, int y, int couleur)
     
     // la tour est dans la 7 ème ranger
 
-    if ((y == 1 && couleur == BLANC) || (y == 7 && couleur == NOIR))
+    if (y == 1 && couleur == BLANC || y == 7 && couleur == NOIR)
     {
         score += 0.35;
     }
@@ -2365,13 +2371,16 @@ float calculer_score(struct Piece board[8][8], int joueur) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             struct Piece piece = board[i][j];
+            if (piece.type == PAS_DE_PIECE) {
+                continue;
+            }
             float valeur = 0.0;
             switch (piece.type) {
                 case PION:
                     valeur = 1.0 + calculer_position_pion(board,i,j,piece.couleur) +0.5 * protege_par_pion(board,i,j,piece.couleur);
                     break;
                 case CAVALIER:
-                    valeur = 3.0 +  calculer_position_cavalier(i,j)+ protege_par_pion(board,i,j,piece.couleur);
+                    valeur = 3.0 +  calculer_position_cavalier(board,i,j,piece.couleur)+ protege_par_pion(board,i,j,piece.couleur);
                     break;
                 case FOU:
                     valeur = 3.25 + calculer_position_fou(board,i,j,piece.couleur)+ protege_par_pion(board,i,j,piece.couleur);
@@ -2385,8 +2394,6 @@ float calculer_score(struct Piece board[8][8], int joueur) {
                 case ROI:
                     valeur = 100.0 + calculer_position_roi(board,i,j,piece.couleur);
                     break;
-                case PAS_DE_PIECE:
-                    continue;
             }
             if (piece.couleur == joueur) {
                 score += valeur;
@@ -2405,6 +2412,8 @@ float calculer_score_V2(struct Piece board[8][8], int joueur) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             struct Piece piece = board[i][j];
+            if (piece.type == PAS_DE_PIECE)
+                continue;
             float valeur = 0.0;
             switch (piece.type) {
                 case PION:
@@ -2425,8 +2434,6 @@ float calculer_score_V2(struct Piece board[8][8], int joueur) {
                 case ROI:
                     valeur = 100.0;
                     break;
-                case PAS_DE_PIECE:
-                    continue;
             }
             if (piece.couleur == joueur)
                 score += valeur;
@@ -2808,7 +2815,7 @@ void minmax_intermediaire(int tours_restant, int couleur, int IA_Couleur, struct
 
 */
 
-void minmax_intermediaire(int couleur, int IA_Couleur, struct Piece board[8][8], float* rep) {
+void minmax_intermediaire(int temps,int couleur, int IA_Couleur, struct Piece board[8][8], float* rep) {
     struct Piece board2[8][8];
     copy_board(board, board2);
     *rep = minmax(1, 2, couleur, IA_Couleur, board2);
@@ -2860,7 +2867,7 @@ void minmax_intermediaire(int tours_restant, int couleur,int IA_Couleur, struct 
 // Fonction exécutée par le thread
 void* threadFunc(void* args) {
     struct ThreadArgs* threadArgs = (struct ThreadArgs*)args;
-    minmax_intermediaire(threadArgs->couleur, threadArgs->IA_Couleur, threadArgs->board, &(threadArgs->result));
+    minmax_intermediaire(threadArgs->tours_restant, threadArgs->couleur, threadArgs->IA_Couleur, threadArgs->board, &(threadArgs->result));
     return NULL;
 }
 
@@ -2880,7 +2887,13 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
     if (nombreDeplacements == 0) {
         return (struct Deplacement) { -5,-5,-5,-5 };
     }
+
+
+    time_t Start;
     
+
+    Start = time(NULL);
+
     float score_rep = -9999;
     int rep = 0;
 
@@ -2968,10 +2981,15 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
     }
 
   
+
+    //time_t Start;
+    time_t End;
+    Start = time(NULL);    
     // Attendre la fin de chaque thread et récupérer les résultats
     for (int i = 0; i < nombreDeplacements; i++) {
         pthread_join(threads[i], NULL);
     }
+    End = time(NULL);   
     //printf("Le temps por que sa s'arrète actuel est de : %ld\n", End - Start);
     /* test */
     //printf("déplavement efectuer %i %i %i %i",deplacements[rep].xArrivee,deplacements[rep].yArrivee,deplacements[rep].xDepart,deplacements[rep].yDepart);
@@ -3018,6 +3036,9 @@ struct Deplacement main_minmax_ancien(int tours_restant, int couleur, struct Pie
     struct Deplacement deplacements[100];
     int nombreDeplacements=0;
     deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
+
+
+    float score = calculer_score(board, couleur);
 
     //printf("score : %f\n",score);
 
@@ -3085,7 +3106,7 @@ struct Deplacement conversionString(char* str, struct Piece board[8][8]) {
 
 
 
-struct Deplacement ouverture_bot(struct Deplacement argv[], int* nb_deplacements, struct Piece board[8][8]) {
+struct Deplacement ouverture_bot(int argc, struct Deplacement argv[], int* nb_deplacements, struct Piece board[8][8]) {
     if (*nb_deplacements == 0)
     {
         return (struct Deplacement) {6,4,4,4};
@@ -3144,6 +3165,7 @@ struct Deplacement ouverture_bot(struct Deplacement argv[], int* nb_deplacements
 
 
 int transcription(int x){
+    int comp = x;
     int res = 0;
     while(x-TILE_SIZE>0){
         res++;
@@ -3219,7 +3241,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
         initialiserPlateau(board, "8/8/8/8/8/8/8/8 w - - 0 1");
         draw_board_fourth(renderer);
         play_but(renderer);
-        piece_fourth(renderer, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+        piece_fourth(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
         
     }
     struct Deplacement move;
@@ -3246,9 +3268,9 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
             SDL_RenderPresent(renderer);
             SDL_DestroyRenderer(renderer);
             while (true)
-            if (SDL_PollEvent(&e) != 0){
+            if (SDL_PollEvent(&e) != 0)
                 if (e.type == SDL_QUIT)
-                    return;
+                    return 0;
                 else if (e.type == SDL_MOUSEBUTTONUP){
                     SDL_GetMouseState(&x, &y);
                     if(x>1120 && x<1370 && y<487 && y>400){
@@ -3261,13 +3283,12 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                     }
                 }
             }
-        }
         else if(mode == 2 && couleur == NOIR){
             SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
             if (renderer == NULL)
                 printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
             if(is_open == 0){
-                struct Deplacement dep = ouverture_bot(last_deplacements, &last, board);
+                struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
                 if(dep.xArrivee == -5)
                     is_open = 1;
                 else{
@@ -3304,7 +3325,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
             if (renderer == NULL)
                 printf("Renderer could not be created! SDL_Error: %s\n", SDL_GetError());
             if(is_open == 0){
-                struct Deplacement dep = ouverture_bot(last_deplacements, &last, board);
+                struct Deplacement dep = ouverture_bot(200, last_deplacements, &last, board);
                 if(dep.xArrivee == -5)
                     is_open = 1;
                 else{
@@ -3348,7 +3369,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
             }
             SDL_DestroyRenderer(renderer);
         }
-        else if (SDL_PollEvent(&e) != 0){
+        else if (SDL_PollEvent(&e) != 0)
             if (e.type == SDL_MOUSEBUTTONUP){
                 SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
                 if (renderer == NULL)
@@ -3358,9 +3379,9 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                     display_left_game(renderer);
                     SDL_RenderPresent(renderer);
                     while (true)
-                        if (SDL_PollEvent(&e) != 0){
+                        if (SDL_PollEvent(&e) != 0)
                             if (e.type == SDL_QUIT)
-                                return;
+                                return 0;
                             else if (e.type == SDL_MOUSEBUTTONUP){
                                 SDL_GetMouseState(&x, &y);
                                 if(x>500 && x<1000 && y<660 && y>500){
@@ -3373,13 +3394,12 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                                     if(mode != 4)
                                         display_whoplay(renderer, couleur);
                                     else
-                                        piece_fourth(renderer, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                        piece_fourth(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                                     draw_board(theme, renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                                     SDL_RenderPresent(renderer);
                                     break;
                                 }
                             }
-                        }
                     SDL_DestroyRenderer(renderer);
                 }
                 else if(mode == 4){
@@ -3413,7 +3433,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                             else if(piece_to_movey == 6)
                                 piece.type = ROI;
                             display_menu(renderer);
-                            piece_fourth(renderer, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                            piece_fourth(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             display_piece_to_play(piece.type, piece.couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             play_but(renderer);
@@ -3423,7 +3443,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                                 board[piece_to_movey][piece_to_movex] = piece;
                                 move.xDepart = -1;
                                 display_menu(renderer);
-                                piece_fourth(renderer, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
+                                piece_fourth(renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                                 display_piece_to_play(piece.type, piece.couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                                 draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                                 play_but(renderer);
@@ -3446,7 +3466,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                         move.xDepart = piece_to_movey;
                         move.yDepart = piece_to_movex;
                         display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                        display_move(move.xDepart, move.yDepart, deplacements, nbDeplacements, renderer);
+                        display_move(move.xDepart, move.yDepart, board, deplacements, nbDeplacements, renderer);
                         SDL_RenderPresent(renderer);
                     }
                     else{
@@ -3457,7 +3477,7 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
                             move.yDepart = piece_to_movex;
                             draw_board(theme,renderer, board, white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
                             display_piece_to_play(board[piece_to_movey][piece_to_movex].type, couleur, renderer, piece_to_movex,piece_to_movey,white_pion_surface, white_cavalier_surface, white_fou_surface, white_rook_surface, white_king_surface, white_queen_surface, black_pion_surface, black_fou_surface, black_cavalier_surface,black_rook_surface,black_king_surface, black_queen_surface);
-                            display_move(move.xDepart, move.yDepart, deplacements, nbDeplacements, renderer);
+                            display_move(move.xDepart, move.yDepart, board, deplacements, nbDeplacements, renderer);
                             SDL_RenderPresent(renderer);
                         }
                         else if((board[move.xDepart][move.yDepart].type == ROI) && ((piece_to_movey == 7 && piece_to_movex == 6) || (piece_to_movey == 7 && piece_to_movex == 2) || (piece_to_movey == 0 && piece_to_movex == 6) || (piece_to_movey == 0 && piece_to_movex == 2))){
@@ -3518,7 +3538,6 @@ void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
             }
             else if(e.type == SDL_QUIT)
                 return;
-        }
     }
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -3535,9 +3554,9 @@ void fun_main(SDL_Window* window, int theme){
     int x, y;
     SDL_Event e;
     while (true)
-        if (SDL_PollEvent(&e) != 0){
+        if (SDL_PollEvent(&e) != 0)
             if (e.type == SDL_QUIT)
-                return;
+                return 0;
             else if (e.type == SDL_MOUSEBUTTONUP){
                 SDL_GetMouseState(&x, &y);
                 if(x<1050 && x>450 && y<937 && y>750){
@@ -3550,9 +3569,9 @@ void fun_main(SDL_Window* window, int theme){
                     SDL_RenderPresent(renderer);
                     SDL_DestroyRenderer(renderer);
                     while (true)
-                        if (SDL_PollEvent(&e) != 0){
+                        if (SDL_PollEvent(&e) != 0)
                             if (e.type == SDL_QUIT)
-                                return;
+                                return 0;
                             else if (e.type == SDL_MOUSEBUTTONUP){
                                 SDL_GetMouseState(&x, &y);
                                 if(x>500 && x<1000 && y<510 && y>350)
@@ -3565,8 +3584,7 @@ void fun_main(SDL_Window* window, int theme){
                                     fun_main(window, theme);
                                     break;
                                 }
-                            }
-                        }
+                            }   
                     break;
                 }
                 else if(x<1050 && x>450 && y<537 && y>350){
@@ -3583,9 +3601,9 @@ void fun_main(SDL_Window* window, int theme){
                     display_theme(renderer);
                     SDL_RenderPresent(renderer);
                     while (true)
-                        if (SDL_PollEvent(&e) != 0){
+                        if (SDL_PollEvent(&e) != 0)
                             if (e.type == SDL_QUIT)
-                                return;
+                                return 0;
                             else if (e.type == SDL_MOUSEBUTTONUP){
                                 SDL_GetMouseState(&x, &y);
                                 if(x>500 && x<1000 && y<660 && y>500){
@@ -3604,11 +3622,9 @@ void fun_main(SDL_Window* window, int theme){
                                     return;
                                 }
                             }
-                        }
                     SDL_DestroyRenderer(renderer);
                 }
             }
-        }
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -3667,6 +3683,7 @@ void test2()
 void test3()
 {
     struct Piece board[8][8];
+    struct Piece board2[8][8];
     int nbDeplacements = 0;
 
     initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b Qkq - 0 1");
@@ -3688,10 +3705,13 @@ void test3()
 void test4()
 {
     struct Piece board[8][8];
+    struct Piece board2[8][8];
+    int nbDeplacements = 0;
 
     initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b Qkq - 0 1");
     time_t Start;
     time_t End;
+    struct Deplacement deplacements[100];
     Start = time(NULL);
     
     for (size_t i = 0; i < 10000000; i++)
@@ -3729,7 +3749,7 @@ void test_IA_Fen2(char fen[],struct Deplacement rep[],struct Deplacement depl[],
 {
     struct Piece board[8][8];
     initialiserPlateau(board, fen);
-    for (int i = 0; i < nbrep; i++)
+    for (size_t i = 0; i < nbrep; i++)
     {
         struct Deplacement a;
         a = main_minmax(temps,NOIR,board);
@@ -3781,6 +3801,7 @@ void test_IA(int temps)
 {
     printf("Temps: %i\n", temps);
 
+    char fen[100];
     printf("Mat en 1\n");
     char fen1[100] = "rnb1kbnr/pppp1ppp/2q5/8/8/8/PPPPKPPP/RNBQ1BNR b kq - 0 1";
     struct Deplacement D1 = {2,2,4,4};
@@ -3891,6 +3912,7 @@ void test10()
     time_t End;
     
     initialiserPlateau(board, "rn1qkbnr/pbpppppp/1p6/P7/8/1B6/1PPPPPPP/RNBQK1NR b - - 0 1");
+    struct Deplacement a;
     Start = time(NULL);
 
     //printf("Le temps actuel est : %ld\n", currentTime);
