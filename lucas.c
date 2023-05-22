@@ -1225,6 +1225,8 @@ int trouverRoi(int couleur, struct Piece board[8][8])
         for (int y = 0 ; y<8 ; y++ )
             if (board[x][y].type == ROI && board[x][y].couleur == couleur)
                 return x*10+y;
+    //affichePlateau(board);
+    //sleep(100);
     perror("trouverRoi");
 
 }
@@ -2062,11 +2064,112 @@ float calculer_position_pion(struct Piece board[8][8],int x, int y, int couleur)
         }
         
     }
+    // Pion passer
 
+    //int estPionPasse = 1; // Variable pour vérifier si le pion est passé
+    if (couleur == BLANC)
+    {
+        for (int i = x - 1; i >= 0; i--) {
+            if(board[i][y].type != PAS_DE_PIECE && (board[i][y].couleur != couleur || board[i][y].couleur == couleur && board[i][y].type == PION))
+            {
+                return score;
+            }
+        }
+        if(y-1 >= 0)
+        {
+            for (int i = x - 1; i >= 0; i--) {
+                if(board[i][y-1].type != PAS_DE_PIECE && board[i][y-1].couleur != couleur)
+                {
+                    return score;
+                }
+            }
+        }
+        if(y+1 < 8)
+        {
+            for (int i = x - 1; i >= 0; i--) {
+                if(board[i][y+1].type != PAS_DE_PIECE && board[i][y+1].couleur != couleur)
+                {
+                    return score;
+                }
+            }
+        }  
+    }
+    else
+    {
+        for (int i = x + 1; i >= 0; i++) {
+            if(board[i][y].type != PAS_DE_PIECE && (board[i][y].couleur != couleur || board[i][y].couleur == couleur && board[i][y].type == PION))
+            {
+                return score;
+            }
+        }
+        if(y-1 >= 0)
+        {
+            for (int i = x + 1; i >= 0; i++) {
+                if(board[i][y-1].type != PAS_DE_PIECE && board[i][y-1].couleur != couleur)
+                {
+                    return score;
+                }
+            }
+        }
+        if(y+1 < 8)
+        {
+            for (int i = x + 1; i >= 0; i++) {
+                if(board[i][y+1].type != PAS_DE_PIECE && board[i][y+1].couleur != couleur)
+                {
+                    return score;
+                }
+            }
+        }
+    }
+    float tab2[8] = {0.0,0.1,0.1,0.2,0.4,1.0,3.0,0.0};
 
+    if (couleur == BLANC)
+    {
+        return score + tab2[7-x];
+    }
+    else
+    {
+        return score + tab2[x];
+    }
+    
+    
+    /*
+    // Pion passer
+    int estPionPasse = 1; // Variable pour vérifier si le pion est passé
+    if (couleur == BLANC)
+    {
 
+        for (int i = x - 1; i >= 0; i--) {
+            if (i >= 0 && i < 8 && i != y) {
+                if (board[i][y].type == PION && board[i][y].couleur != couleur && (y+1 < 8 || (board[i][y+1].type == PION && board[i][y+1].couleur != couleur))&& (y-1 > 0 || (board[i][y-1].type == PION && board[i][y-1].couleur != couleur))) {
+                    estPionPasse = 0;
+                    break;
+                }
+            }
+        }
+        
+    }
+    else
+    {
 
-    return score;
+        for (int i = x + 1; i <= 7; i++) {
+            if (i >= 0 && i < 8 && i != y) {
+                if (board[i][y].type == PION && board[i][y].couleur != couleur && (y+1 < 8 || (board[i][y+1].type == PION && board[i][y+1].couleur != couleur))&& (y-1 > 0 || (board[i][y-1].type == PION && board[i][y-1].couleur != couleur))) {
+                    estPionPasse = 0;
+                    break;
+                 }
+             }
+          }
+        
+    }
+    
+
+    if (estPionPasse) {
+        // Le pion est passé, ajustez le score en conséquence
+        score += 0.5;
+    }
+    */
+    //return score;
 }
 
 
@@ -2344,6 +2447,8 @@ float calculer_score_V2(struct Piece board[8][8], int joueur) {
 
 
 
+
+
 float minmax_ancien(int tours_restant, int couleur,int IA_Couleur, struct Piece board[8][8]) {
     pthread_testcancel();
     if (tours_restant <= 0) {
@@ -2484,7 +2589,7 @@ float alphabeta(int tours_restants, int PROFONDEUR_ATTENTE, int couleur, int IA_
     struct Piece manger;
     struct Piece deplacer;
     
-    if (tours_restants <= PROFONDEUR_ATTENTE) {
+    if (tours_restants <= PROFONDEUR_ATTENTE  ) {
         // Ne pas effectuer d'élagage Alpha-Bêta si la profondeur est inférieure à PROFONDEUR_ATTENTE
         for (int i = 0; i < nombreDeplacements; i++) {
             manger = board[deplacements[i].xArrivee][deplacements[i].yArrivee];
@@ -2715,19 +2820,20 @@ void minmax_intermediaire(int temps,int couleur, int IA_Couleur, struct Piece bo
     copy_board(board, board2);
     *rep = minmax(1, 2, couleur, IA_Couleur, board2);
     
-    for (size_t i = 1; i < 100; i += 2) {
+    for (size_t i = 3; i < 100; i += 2) {
         copy_board(board, board2);
         
         if (i > 4) {
-            *rep = minmax(i, i - 2, couleur, IA_Couleur, board2);
+            *rep = minmax(i, i-2, couleur, IA_Couleur, board2);
         } else {
             *rep = minmax(i, 3, couleur, IA_Couleur, board2);
         }
+        //printf("Profondeur : %i\n", i);
         
         pthread_testcancel();
         
         if (i >= 5) {
-            printf("Profondeur : %i\n", i);
+            //printf("Profondeur : %i\n", i);
         }
     }
 }
@@ -2772,12 +2878,12 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
     struct Deplacement deplacements[100];
     int nombreDeplacements = 0;
     deplacementsPossibles(couleur, deplacements, &nombreDeplacements, board);
-
+    /*
     float score = calculer_score(board, couleur);
     printf("score : %f\n", score);
     printf("nb deplacemnt : %i\n", nombreDeplacements);
     afficheDeplacements(deplacements, nombreDeplacements);
-
+    */
     if (nombreDeplacements == 0) {
         return (struct Deplacement) { -5,-5,-5,-5 };
     }
@@ -2884,12 +2990,18 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
         pthread_join(threads[i], NULL);
     }
     End = time(NULL);   
-    printf("Le temps por que sa s'arrète actuel est de : %ld\n", End - Start);
+    //printf("Le temps por que sa s'arrète actuel est de : %ld\n", End - Start);
     /* test */
     //printf("déplavement efectuer %i %i %i %i",deplacements[rep].xArrivee,deplacements[rep].yArrivee,deplacements[rep].xDepart,deplacements[rep].yDepart);
     movePiece(deplacements[rep], board, couleur);
     return deplacements[rep];
 }
+
+
+
+
+
+
 /*
 
 void* threadFunc2(void* args) {
@@ -2916,7 +3028,7 @@ struct Deplacement main_minmax(int tours_restant, int couleur, struct Piece boar
 
 }
 */
-/*
+
 
 struct Deplacement main_minmax_ancien(int tours_restant, int couleur, struct Piece board[8][8])
 {
@@ -2928,12 +3040,12 @@ struct Deplacement main_minmax_ancien(int tours_restant, int couleur, struct Pie
 
     float score = calculer_score(board, couleur);
 
-    printf("score : %f\n",score);
+    //printf("score : %f\n",score);
 
 
-    printf("nb deplacemnt : %i\n",nombreDeplacements);
+    //printf("nb deplacemnt : %i\n",nombreDeplacements);
 
-    afficheDeplacements(deplacements, nombreDeplacements);
+    //afficheDeplacements(deplacements, nombreDeplacements);
 
     if (nombreDeplacements == 0)
     {
@@ -2952,7 +3064,7 @@ struct Deplacement main_minmax_ancien(int tours_restant, int couleur, struct Pie
         //affichePlateau(board2);
         movePiece(deplacements[i], board2, couleur);
         //affichePlateau(board2);
-        float s = minmax(tours_restant-1, inverse(couleur),couleur, board2);
+        float s = minmax_ancien(tours_restant-1, inverse(couleur),couleur, board2);
 
         if (s > score_rep)
         {
@@ -2966,7 +3078,7 @@ struct Deplacement main_minmax_ancien(int tours_restant, int couleur, struct Pie
     return deplacements[rep];
 }
 
-*/
+
 struct Deplacement conversionString(char* str, struct Piece board[8][8]) {
     struct Deplacement resultat;
     
@@ -3062,7 +3174,6 @@ int transcription(int x){
     }
     return res;
 }
-
 
 void play(SDL_Window *window, int mode, int difficulty_bot, int theme)
 {
@@ -3514,7 +3625,6 @@ void fun_main(SDL_Window* window, int theme){
 }
 
 
-
 void test()
 {
     struct Piece board[8][8];
@@ -3629,13 +3739,158 @@ void test_IA_Fen(char fen[],struct Deplacement rep,int temps)
 
 }
 
-
-
-void test_IA()
+void test_IA_Fen2(char fen[],struct Deplacement rep[],struct Deplacement depl[],int temps,int nbrep)
 {
+    struct Piece board[8][8];
+    initialiserPlateau(board, fen);
+    for (size_t i = 0; i < nbrep; i++)
+    {
+        struct Deplacement a;
+        a = main_minmax(temps,NOIR,board);
+        struct Deplacement La[100] ;
+        La[i]= a;
+
+        if (a.xArrivee == rep[i].xArrivee && a.yArrivee == rep[i].yArrivee && a.xDepart == rep[i].xDepart && a.yDepart == rep[i].yDepart)
+        {
+            movePiece(a,board,NOIR);
+            if (i+1 < nbrep)
+            {
+               movePiece(depl[i],board,BLANC);
+            }
+            
+            
+        }
+        else
+        {
+            afficheDeplacements(La,i+1);
+            //printf("\n");
+            couleur("1;31"); // Texte en rouge
+            printf("erreur\n");
+            couleur("0");
+            return;
+        }
+        
+    }
+    
+    couleur("1;32"); // Texte en vert
+            
+    printf("correct\n");
+    couleur("0");
+
+}
+
+
+
+struct Deplacement ini(int x1,int y1,int x2,int y2)
+{
+    struct Deplacement rep;
+    rep.xDepart = x1;
+    rep.yDepart = y1;
+    rep.xArrivee = x2;
+    rep.yArrivee = y2;
+    return rep;
+}
+
+void test_IA(int temps)
+{
+    printf("Temps: %i\n", temps);
+
+    char fen[100];
+    printf("Mat en 1\n");
     char fen1[100] = "rnb1kbnr/pppp1ppp/2q5/8/8/8/PPPPKPPP/RNBQ1BNR b kq - 0 1";
     struct Deplacement D1 = {2,2,4,4};
-    test_IA_Fen(fen1,D1,5);
+    struct Deplacement L1[100];
+    struct Deplacement L2[100];
+    L1[0] = D1;
+    test_IA_Fen2(fen1,L1,L2,temps,1);
+
+    printf("Mat en 2\n");
+
+
+    L1[0] =ini(1,6,1,7); 
+    L1[1] =ini(2,4,3,5); 
+
+    L2[0] =ini(3,7,2,6); 
+    test_IA_Fen2("8/p5r1/4b3/4k1PK/PR2p3/4P3/5PB1/8 b - - 0 2",L1,L2,temps,2);
+
+
+    printf("Mat en 3\n");
+    L1[0] =ini(2,4,4,7); 
+    L1[1] =ini(2,1,6,5); 
+    L1[2] =ini(2,3,3,5);
+
+    L2[0] =ini(7,4,6,4); 
+    L2[1] =ini(6,4,5,3); 
+    test_IA_Fen2("3k3r/3nbppp/pq1pp1b1/4P3/4B1P1/1PN2P1P/P1PB4/R2QK2R b - - 2 1",L1,L2,temps,3);
+
+
+    printf("Ouverture\n");
+    
+    // trés facile
+    char fen2[100] = "r2qk2r/1p3pbp/p3bnp1/2pp4/P1BN4/1PN5/1BPP1PPP/R2QR1K1 b - - 0 1";
+
+    L1[0] =ini(3,2,4,3);
+    L1[1] =ini(3,3,4,2);
+    L2[0] =ini(5,2,6,4);
+    test_IA_Fen2(fen2,L1,L2,temps,2);
+
+
+    //Normale
+    char fen4[100] = "r2q1rk1/p1p1ppbp/1p3Bp1/8/8/1P1P4/P1PNBPbP/R2Q1RK1 b - - 0 1";
+    
+    L1[0] =ini(6,6,7,5);
+    L1[1] =ini(7,5,6,4);
+    L2[0] =ini(2,5,1,6);
+    test_IA_Fen2(fen4,L1,L2,temps,2);
+
+    printf("Finale\n");
+
+    // Normal
+    char fen3[100] = "8/p4k1K/1p4p1/5p2/8/2P3P1/PP5P/8 b - - 0 1";
+
+    L1[0] =ini(2,6,3,6);
+    L1[1] =ini(3,5,4,5);
+    L1[2] =ini(4,5,5,5);
+    L2[0] =ini(1,7,2,7);
+    L2[1] =ini(4,5,5,5);
+    test_IA_Fen2(fen3,L1,L2,temps,3);
+
+    printf("Milieu de jeux\n");
+
+    // trés Facile
+    L1[0] =ini(2,4,3,2); 
+    L1[1] =ini(0,2,3,2); 
+    L2[0] =ini(1,0,3,2); 
+    test_IA_Fen2("1qr3k1/Qb1pbppp/4pn2/1N6/2n1P3/P1N2P2/1P2B1PP/R4RK1 b - - 0 1",L1,L2,temps,2);
+
+    // Facile
+    L1[0] =ini(3,3,3,2); 
+    L1[1] =ini(3,2,3,6); 
+    L1[2] =ini(3,6,5,4); 
+    L2[0] =ini(5,5,4,3); 
+    L2[1] =ini(4,3,2,4); 
+    test_IA_Fen2("5rk1/2p3pp/1p1p1n2/1P1q2B1/4p3/2P2N1P/6P1/1Q1R2K1 b - - 0 2",L1,L2,temps,3);
+
+
+    // Normal
+    L1[0] =ini(2,1,3,0); 
+    L1[1] =ini(2,5,4,4); 
+    L1[2] =ini(3,0,6,3); 
+    L2[0] =ini(7,0,5,0); 
+    L2[1] =ini(5,2,4,4); 
+    test_IA_Fen2("r1b2rk1/1pqp1ppp/1b2pn2/1B6/P3P3/2N1B3/2PQ1PPP/R4RK1 b - - 0 2",L1,L2,temps,3);
+
+    // Difficile
+    L1[0] =ini(6,6,5,6); 
+    L1[1] =ini(2,7,7,7); 
+    L1[2] =ini(7,7,7,5);
+    L1[3] = ini(4,6,5,7);
+
+    L2[0] =ini(7,5,6,5); 
+    L2[1] =ini(4,2,7,5); 
+    L1[2] = ini(7,4,7,5);
+    test_IA_Fen2("4rk2/1p5r/p7/2R2PQ1/1PB1P1b1/6P1/3N2q1/4KR2 b - - 0 2",L1,L2,temps,4);
+
 }
 
 
@@ -3643,6 +3898,8 @@ void test_IA()
 
 void test10()
 {
+
+
     struct Piece board[8][8];
     
     time_t Start;
