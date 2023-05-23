@@ -1,41 +1,6 @@
-#include <stdio.h>
-#include <math.h>
-#include "src/gui.c"
-#include "src/print_board.c"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <pthread.h>
-#include <unistd.h>
-
-#define MAX_LINE_LENGTH 1024
-#define MAX_MOVES_PER_LINE 256
-#define MAX_MOVES_HISTORY 50
-
-
-void afficheDeplacements(struct Deplacement* deplacements, int nbDeplacements) {
-    for (int i = 0; i < nbDeplacements; i++)
-        printf("Deplacement %d: %c%d -> %c%d\n", i+1, 'a' + deplacements[i].yDepart, 8 - deplacements[i].xDepart, 'a' + deplacements[i].yArrivee, 8 - deplacements[i].xArrivee);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#include "../include/lucas.h"
+#include "print_move.c"
+#include "gui.c"
 
 int RoiEnEchec_player(int xRoi,int yRoi, int couleur,struct Piece board[8][8],int xRoiEnnemie, int yRoiEnnemie)
 {
@@ -1964,25 +1929,6 @@ void position_precedante(struct Piece board[8][8],struct Piece manger,struct Pie
 }
 
 
-
-// Structure pour les arguments du thread
-struct ThreadArgs {
-    int tours_restant;
-    int couleur;
-    int IA_Couleur;
-    struct Piece board[8][8];
-    float result;
-};
-/*
-struct ThreadArgs2 {
-    int tours_restant;
-    int couleur;
-    struct Piece board[8][8];
-    struct Deplacement result;
-};
-*/
-
-
 float fmin2(float a, float b) {
     return a < b ? a : b;
 }
@@ -3120,7 +3066,6 @@ struct Deplacement ouverture_bot(struct Deplacement argv[], int* nb_deplacements
                 if (k >= *nb_deplacements) {
                     fclose(fp);
                     struct Deplacement dep = conversionString(&line[i],board);
-                    printf("mouvement %i %i %i %i\n",dep.xArrivee,dep.xDepart,dep.yArrivee,dep.yDepart);
                     return dep;
                 }
             } else {

@@ -1,13 +1,4 @@
-#include <SDL2/SDL.h>
-#include <stdbool.h>
-#include "SDL2/SDL_image.h"
-#include "../include/struct.h"
-#include <SDL2/SDL_ttf.h>
-
-
-
-#define BOARD_SIZE 8
-#define TILE_SIZE 123
+#include "../include/gui.h"
 
 void display_first_screen(SDL_Renderer* renderer){
   SDL_SetRenderDrawColor(renderer, 0x3d, 0x3a, 0x38, 0xFF);

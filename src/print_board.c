@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include "../include/struct.h"
 #include "../include/print_board.h"
-
-#define couleur(param) printf("\033[%sm",param)
 
 void affichePlateau(struct Piece plateau[8][8]) {
     // Affiche les lettres de colonne en haut de l'échiquier

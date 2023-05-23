@@ -1,14 +1,17 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra
+LDFLAGS = -lSDL2 -lSDL2_image -lSDL2_ttf
 
-SRC2 = lucas.c
+
+SRC2 = src/lucas.c
+SRC = include/gui.h include/print_board.h include/lucas.h
 
 jeu: ${OBJ}
 
 .PHONY: clean
 
 lucas:
-	${CC} -o lucas -Wall -Wextra ${SRC2} -lSDL2 -lSDL2_image -lSDL2_ttf
+	${CC} -o lucas ${SRC2} ${SRC} ${CFLAGS} ${LDFLAGS}
 
 clean:
 	${RM} lucas
